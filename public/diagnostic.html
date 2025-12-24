@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wi-Care 系統診斷</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-left: 4px solid #667eea;
+            border-radius: 8px;
+        }
+        
+        .test-section h2 {
+            color: #667eea;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+        
+        .btn-success {
+            background: #51cf66;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #40c057;
+        }
+        
+        .btn-danger {
+            background: #ff6b6b;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #ff5252;
+        }
+        
+        .output {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 10px 0;
+            color: #333;
+        }
+        
+        .output.error {
+            border-left: 4px solid #ff6b6b;
+            background: #ffe0e0;
+        }
+        
+        .output.success {
+            border-left: 4px solid #51cf66;
+            background: #e0ffe0;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        
+        .status-indicator.ok {
+            background: #51cf66;
+        }
+        
+        .status-indicator.error {
+            background: #ff6b6b;
+        }
+        
+        .status-indicator.pending {
+            background: #ffd43b;
+        }
+        
+        .info-text {
+            color: #666;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 Wi-Care 系統診斷工具</h1>
+        
+        <!-- 測試 1: ESP32 連接 -->
+        <div class="test-section">
+            <h2><span class="status-indicator pending" id="esp32-status"></span>ESP32 連接測試</h2>
+            <div class="info-text">測試應用程式是否能連接到 ESP32 伺服器 (172.20.10.9:8080)</div>
+            <div class="button-group">
+                <button class="btn-primary" onclick="testESP32Connection()">🔍 測試連接</button>
+            </div>
+            <div class="output" id="esp32-output" style="display:none;"></div>
+        </div>
+        
+        <!-- 測試 2: 獲取設備狀態 -->
+        <div class="test-section">
+            <h2><span class="status-indicator pending" id="status-test"></span>設備狀態測試</h2>
+            <div class="info-text">從 ESP32 獲取當前設備狀態</div>
+            <div class="button-group">
+                <button class="btn-primary" onclick="fetchDeviceStatus()">📊 獲取狀態</button>
+                <button class="btn-primary" onclick="continuousFetch()">🔄 連續輪詢 (10秒)</button>
+            </div>
+            <div class="output" id="status-output" style="display:none;"></div>
+        </div>
+        
+        <!-- 測試 3: 模擬跌倒 -->
+        <div class="test-section">
+            <h2><span class="status-indicator pending" id="fall-test"></span>跌倒觸發測試</h2>
+            <div class="info-text">手動觸發跌倒檢測，觀察應用程式是否即時更新</div>
+            <div class="button-group">
+                <button class="btn-danger" onclick="triggerFall()">🔴 觸發跌倒</button>
+                <button class="btn-success" onclick="clearFall()">🟢 清除跌倒</button>
+            </div>
+            <div class="output" id="fall-output" style="display:none;"></div>
+        </div>
+        
+        <!-- 測試 4: 同步檢查 -->
+        <div class="test-section">
+            <h2><span class="status-indicator pending" id="sync-test"></span>應用程式同步檢查</h2>
+            <div class="info-text">驗證應用程式是否正確同步 ESP32 狀態</div>
+            <div class="button-group">
+                <button class="btn-primary" onclick="syncTest()">⚡ 執行同步測試</button>
+            </div>
+            <div class="output" id="sync-output" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const ESP32_URL = 'http://172.20.10.9:8080';
+        let continuousInterval = null;
+
+        function log(elementId, message, isError = false) {
+            const elem = document.getElementById(elementId);
+            elem.style.display = 'block';
+            const timestamp = new Date().toLocaleTimeString('zh-TW');
+            const line = `[${timestamp}] ${message}`;
+            
+            if (elem.textContent) {
+                elem.textContent += '\n' + line;
+            } else {
+                elem.textContent = line;
+            }
+            
+            elem.scrollTop = elem.scrollHeight;
+            
+            if (isError) {
+                elem.classList.add('error');
+                elem.classList.remove('success');
+            }
+        }
+
+        function clearLog(elementId) {
+            const elem = document.getElementById(elementId);
+            elem.textContent = '';
+            elem.style.display = 'none';
+            elem.classList.remove('error', 'success');
+        }
+
+        async function testESP32Connection() {
+            clearLog('esp32-output');
+            updateStatus('esp32-status', 'pending');
+            
+            try {
+                log('esp32-output', '正在測試連接到 ' + ESP32_URL + '...');
+                
+                const response = await fetch(ESP32_URL + '/health', {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log('esp32-output', '✅ 連接成功！');
+                    log('esp32-output', '伺服器狀態: ' + JSON.stringify(data));
+                    document.getElementById('esp32-output').classList.add('success');
+                    updateStatus('esp32-status', 'ok');
+                } else {
+                    log('esp32-output', '❌ 伺服器返回錯誤: ' + response.status, true);
+                    updateStatus('esp32-status', 'error');
+                }
+            } catch (error) {
+                log('esp32-output', '❌ 連接失敗: ' + error.message, true);
+                log('esp32-output', '可能原因: CORS 阻止、防火牆、或 ESP32 離線', true);
+                updateStatus('esp32-status', 'error');
+            }
+        }
+
+        async function fetchDeviceStatus() {
+            clearLog('status-output');
+            updateStatus('status-test', 'pending');
+            
+            try {
+                log('status-output', '正在從 ESP32 獲取設備狀態...');
+                
+                const response = await fetch(ESP32_URL + '/status', {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                
+                const data = await response.json();
+                log('status-output', '✅ 狀態獲取成功');
+                log('status-output', JSON.stringify(data, null, 2));
+                document.getElementById('status-output').classList.add('success');
+                updateStatus('status-test', 'ok');
+            } catch (error) {
+                log('status-output', '❌ 獲取狀態失敗: ' + error.message, true);
+                updateStatus('status-test', 'error');
+            }
+        }
+
+        async function triggerFall() {
+            clearLog('fall-output');
+            updateStatus('fall-test', 'pending');
+            
+            try {
+                log('fall-output', '正在觸發跌倒檢測...');
+                
+                const response = await fetch(ESP32_URL + '/trigger-fall', {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                log('fall-output', '✅ 跌倒已觸發');
+                log('fall-output', JSON.stringify(data, null, 2));
+                log('fall-output', '📱 檢查應用程式界面 - 應該顯示 "⚠️ 緊急" 並播放警報');
+                document.getElementById('fall-output').classList.add('success');
+                updateStatus('fall-test', 'ok');
+            } catch (error) {
+                log('fall-output', '❌ 觸發失敗: ' + error.message, true);
+                updateStatus('fall-test', 'error');
+            }
+        }
+
+        async function clearFall() {
+            clearLog('fall-output');
+            
+            try {
+                log('fall-output', '正在清除跌倒狀態...');
+                
+                const response = await fetch(ESP32_URL + '/clear-fall', {
+                    method: 'POST',
+                    mode: 'cors'
+                });
+                
+                const data = await response.json();
+                log('fall-output', '✅ 跌倒狀態已清除');
+                log('fall-output', JSON.stringify(data, null, 2));
+                log('fall-output', '📱 應用程式應該回到 "一切安好" 狀態');
+                document.getElementById('fall-output').classList.add('success');
+            } catch (error) {
+                log('fall-output', '❌ 清除失敗: ' + error.message, true);
+            }
+        }
+
+        async function continuousFetch() {
+            clearLog('status-output');
+            
+            if (continuousInterval) {
+                clearInterval(continuousInterval);
+                log('status-output', '❌ 已停止連續輪詢');
+                return;
+            }
+            
+            let count = 0;
+            log('status-output', '開始連續輪詢 (每秒)...');
+            
+            continuousInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(ESP32_URL + '/status', { mode: 'cors' });
+                    const data = await response.json();
+                    count++;
+                    log('status-output', `[${count}] 狀態: ${data.status} | 加速度: ${data.magnitude?.toFixed(2) || 'N/A'}G`);
+                } catch (error) {
+                    log('status-output', `[${count}] ❌ 輪詢失敗: ${error.message}`, true);
+                }
+            }, 1000);
+            
+            setTimeout(() => {
+                clearInterval(continuousInterval);
+                continuousInterval = null;
+                log('status-output', '✅ 輪詢完成');
+            }, 10000);
+        }
+
+        async function syncTest() {
+            clearLog('sync-output');
+            updateStatus('sync-test', 'pending');
+            
+            try {
+                log('sync-output', '開始同步測試...');
+                log('sync-output', '步驟 1: 觸發跌倒');
+                
+                await fetch(ESP32_URL + '/trigger-fall', { method: 'POST', mode: 'cors' });
+                await new Promise(r => setTimeout(r, 1000));
+                
+                log('sync-output', '步驟 2: 檢查 ESP32 狀態');
+                let response = await fetch(ESP32_URL + '/status', { mode: 'cors' });
+                let data = await response.json();
+                log('sync-output', 'ESP32 報告: ' + data.status);
+                
+                if (data.status === 'fall') {
+                    log('sync-output', '✅ ESP32 已檢測到跌倒');
+                } else {
+                    log('sync-output', '❌ ESP32 未檢測到跌倒', true);
+                }
+                
+                log('sync-output', '步驟 3: 清除跌倒');
+                await fetch(ESP32_URL + '/clear-fall', { method: 'POST', mode: 'cors' });
+                await new Promise(r => setTimeout(r, 1000));
+                
+                log('sync-output', '步驟 4: 檢查最終狀態');
+                response = await fetch(ESP32_URL + '/status', { mode: 'cors' });
+                data = await response.json();
+                log('sync-output', 'ESP32 最終狀態: ' + data.status);
+                
+                if (data.status === 'safe') {
+                    log('sync-output', '✅ 同步測試通過！系統正常工作');
+                    document.getElementById('sync-output').classList.add('success');
+                    updateStatus('sync-test', 'ok');
+                } else {
+                    log('sync-output', '❌ 同步失敗', true);
+                    updateStatus('sync-test', 'error');
+                }
+            } catch (error) {
+                log('sync-output', '❌ 測試失敗: ' + error.message, true);
+                updateStatus('sync-test', 'error');
+            }
+        }
+
+        function updateStatus(elementId, status) {
+            const elem = document.getElementById(elementId);
+            elem.classList.remove('ok', 'error', 'pending');
+            if (status === 'ok') {
+                elem.classList.add('ok');
+            } else if (status === 'error') {
+                elem.classList.add('error');
+            } else {
+                elem.classList.add('pending');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wi-Care 音頻測試</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 500px;
+        }
+        
+        h1 {
+            color: #333;
+            margin: 0 0 30px 0;
+        }
+        
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        button {
+            padding: 15px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .play-btn {
+            background: #ff6b6b;
+            color: white;
+        }
+        
+        .play-btn:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+        }
+        
+        .stop-btn {
+            background: #51cf66;
+            color: white;
+        }
+        
+        .stop-btn:hover {
+            background: #40c057;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(81, 207, 102, 0.3);
+        }
+        
+        .info {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            min-height: 20px;
+        }
+        
+        .status.playing {
+            background: #ffe0e0;
+            color: #ff6b6b;
+        }
+        
+        .status.stopped {
+            background: #e0ffe0;
+            color: #51cf66;
+        }
+        
+        .status.init {
+            background: #fff3e0;
+            color: #ff9800;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔊 Wi-Care 音頻系統測試</h1>
+        
+        <div class="info">
+            <p>這個測試頁面將幫助你驗證系統音頻是否正常運作。</p>
+            <p>點擊下方按鈕開始音頻測試。</p>
+        </div>
+        
+        <div class="button-group">
+            <button class="play-btn" onclick="playAlarm()">▶️ 播放警報（跌倒檢測）</button>
+            <button class="stop-btn" onclick="stopAlarm()">⏹️ 停止警報</button>
+        </div>
+        
+        <div class="status init" id="status">等待命令...</div>
+    </div>
+
+    <script>
+        let audioContext = null;
+        let oscillator = null;
+        let gainNode = null;
+        let isPlaying = false;
+        let sirenInterval = null;
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                updateStatus('已初始化 Web Audio API', 'init');
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+                updateStatus('已啟用音頻上下文', 'init');
+            }
+        }
+
+        function playAlarm() {
+            initAudio();
+            
+            if (isPlaying) {
+                updateStatus('⚠️ 警報已在播放中', 'playing');
+                return;
+            }
+
+            isPlaying = true;
+            
+            try {
+                // 創建警報聲
+                oscillator = audioContext.createOscillator();
+                gainNode = audioContext.createGain();
+
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
+                
+                // 鳴笛效果
+                oscillator.frequency.linearRampToValueAtTime(440, audioContext.currentTime + 0.5);
+                oscillator.frequency.linearRampToValueAtTime(880, audioContext.currentTime + 1.0);
+
+                gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.start();
+                
+                // 循環鳴笛效果
+                sirenInterval = setInterval(() => {
+                    if (!isPlaying || !oscillator || !audioContext) {
+                        clearInterval(sirenInterval);
+                        return;
+                    }
+                    const now = audioContext.currentTime;
+                    oscillator.frequency.cancelScheduledValues(now);
+                    oscillator.frequency.setValueAtTime(880, now);
+                    oscillator.frequency.linearRampToValueAtTime(440, now + 0.5);
+                    oscillator.frequency.linearRampToValueAtTime(880, now + 1.0);
+                }, 1000);
+
+                updateStatus('🔴 警報播放中... 應該聽到「嗯嗯嗯」的鳴笛聲', 'playing');
+            } catch (error) {
+                updateStatus('❌ 播放失敗: ' + error.message, 'init');
+            }
+        }
+
+        function stopAlarm() {
+            if (!isPlaying) {
+                updateStatus('警報未運行', 'stopped');
+                return;
+            }
+
+            try {
+                if (oscillator) {
+                    oscillator.stop();
+                    oscillator.disconnect();
+                    oscillator = null;
+                }
+                if (sirenInterval) {
+                    clearInterval(sirenInterval);
+                    sirenInterval = null;
+                }
+                isPlaying = false;
+                updateStatus('✅ 警報已停止', 'stopped');
+            } catch (error) {
+                updateStatus('❌ 停止失敗: ' + error.message, 'init');
+            }
+        }
+
+        function updateStatus(message, className) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status ' + className;
+        }
+
+        // 頁面載入時初始化
+        window.addEventListener('load', () => {
+            updateStatus('✅ 頁面已載入，點擊按鈕開始測試', 'init');
+        });
+
+        // 頁面卸載時停止
+        window.addEventListener('beforeunload', () => {
+            stopAlarm();
+        });
+    </script>
+</body>
+</html>
