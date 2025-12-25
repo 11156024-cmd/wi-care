@@ -1,49 +1,44 @@
-import { DeviceData } from '../types';
+import { DeviceData } from '../WiCare.Types';
 
 /**
- * Wi-Care ESP32-S3 真實數據 API 服務
+ * Wi-Care ESP32-S3 ?�實?��? API ?��?
  * 
- * 基於 ESPectre 專案參數配置：
- * - traffic_generator_rate: 100 (CSI 封包生成速率)
- * - segmentation_threshold: 1.0 (動作敏感度)
- * - segmentation_window_size: 50 (分析窗口大小)
+ * ?�於 ESPectre 專�??�數?�置�? * - traffic_generator_rate: 100 (CSI 封�??��??��?)
+ * - segmentation_threshold: 1.0 (?��??��?�?
+ * - segmentation_window_size: 50 (?��?窗口大�?)
  * 
  * @see https://github.com/francescopace/espectre
  */
 
-// ESP32-S3 伺服器設定 - 真實硬體連接
+// ESP32-S3 伺�??�設�?- ?�實硬�???��
 const ESP32_SERVER = {
-  host: '172.20.10.9', // ESP32-S3 實際 IP 地址
+  host: '172.20.10.9', // ESP32-S3 實�? IP ?��?
   port: 8080,
   protocol: 'http'
 };
 
-// 連接狀態追蹤
-let isConnected = false;
+// ??��?�?�追�?let isConnected = false;
 let lastSuccessfulConnection = 0;
 let connectionAttempts = 0;
 const MAX_CONNECTION_ATTEMPTS = 3;
-const CONNECTION_TIMEOUT = 5000; // 5 秒
-
-// 獲取完整的 ESP32 伺服器 URL
+const CONNECTION_TIMEOUT = 5000; // 5 �?
+// ?��?完整??ESP32 伺�???URL
 const getESP32URL = (endpoint: string): string => {
   return `${ESP32_SERVER.protocol}://${ESP32_SERVER.host}:${ESP32_SERVER.port}${endpoint}`;
 };
 
 /**
- * 從 ESP32-S3 跌倒檢測伺服器獲取真實狀態
- * 
- * 端點：GET http://ESP32_IP:8080/status
- * 回應格式：{ 
+ * �?ESP32-S3 跌倒檢測伺?�器?��??�實?�?? * 
+ * 端�?：GET http://ESP32_IP:8080/status
+ * ?��??��?：{ 
  *   "status": "safe" | "fall", 
  *   "falling": boolean, 
  *   "timestamp": number, 
  *   "device_id": string,
- *   "movement_score": number (可選，來自 ESPectre)
+ *   "movement_score": number (?�選，�???ESPectre)
  * }
  * 
- * ⚠️ 此函數只返回真實數據，不提供假數據降級
- */
+ * ?��? 此函?�只返�??�實?��?，�??��??�數?��?�? */
 export const fetchDeviceStatus = async (shouldFail: boolean = false): Promise<DeviceData> => {
   if (shouldFail) {
     throw new Error("Manual fail flag enabled");
@@ -68,17 +63,16 @@ export const fetchDeviceStatus = async (shouldFail: boolean = false): Promise<De
 
     if (!response.ok) {
       isConnected = false;
-      throw new Error(`ESP32 伺服器錯誤: HTTP ${response.status}`);
+      throw new Error(`ESP32 伺�??�錯�? HTTP ${response.status}`);
     }
 
     const data = await response.json();
     
-    // 更新連接狀態
-    isConnected = true;
+    // ?�新??��?�??    isConnected = true;
     lastSuccessfulConnection = Date.now();
     connectionAttempts = 0;
 
-    console.log('[ESP32-API] 真實數據:', {
+    console.log('[ESP32-API] ?�實?��?:', {
       status: data.status,
       falling: data.falling,
       device_id: data.device_id,
@@ -97,27 +91,27 @@ export const fetchDeviceStatus = async (shouldFail: boolean = false): Promise<De
     
     const errorMessage = error instanceof Error ? error.message : String(error);
     
-    // 區分不同類型的錯誤
+    // ?�?��??��??��??�誤
     if (errorMessage.includes('abort')) {
-      console.error('[ESP32-API] ❌ 連接超時 (5秒)');
-      throw new Error('ESP32 連接超時 - 請檢查設備是否在線');
+      console.error('[ESP32-API] ????��超�? (5�?');
+      throw new Error('ESP32 ??��超�? - 請檢?�設?�是?�在�?);
     }
     
     if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError')) {
-      console.error('[ESP32-API] ❌ 網路錯誤 - ESP32 離線或 CORS 問題');
-      throw new Error('ESP32 無法連接 - 設備離線或網路問題');
+      console.error('[ESP32-API] ??網路?�誤 - ESP32 ?��???CORS ?��?');
+      throw new Error('ESP32 ?��???�� - 設�??��??�網路�?�?);
     }
     
-    console.error('[ESP32-API] ❌ 連接失敗:', errorMessage);
-    throw new Error(`ESP32 連接錯誤: ${errorMessage}`);
+    console.error('[ESP32-API] ????��失�?:', errorMessage);
+    throw new Error(`ESP32 ??��?�誤: ${errorMessage}`);
   }
 };
 
 /**
- * 手動觸發 ESP32 上的跌倒檢測（測試用）
- * 端點：POST http://ESP32_IP:8080/trigger-fall
+ * ?��?觸發 ESP32 上�?跌倒檢測�?測試?��?
+ * 端�?：POST http://ESP32_IP:8080/trigger-fall
  * 
- * 注意：此函數會拋出錯誤，不會返回 false
+ * 注�?：此?�數?��??�錯誤�?不�?返�? false
  */
 export const triggerESP32FallDetection = async (): Promise<boolean> => {
   const controller = new AbortController();
@@ -135,25 +129,24 @@ export const triggerESP32FallDetection = async (): Promise<boolean> => {
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      throw new Error(`ESP32 回應錯誤: HTTP ${response.status}`);
+      throw new Error(`ESP32 ?��??�誤: HTTP ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('[ESP32-API] ✅ 跌倒已觸發:', data);
+    console.log('[ESP32-API] ??跌倒已觸發:', data);
     return true;
   } catch (error) {
     clearTimeout(timeoutId);
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('[ESP32-API] ❌ 無法觸發跌倒:', errorMessage);
-    throw new Error(`ESP32 觸發跌倒失敗: ${errorMessage}`);
+    console.error('[ESP32-API] ???��?觸發跌�?', errorMessage);
+    throw new Error(`ESP32 觸發跌倒失?? ${errorMessage}`);
   }
 };
 
 /**
- * 清除 ESP32 上的跌倒狀態
- * 端點：POST http://ESP32_IP:8080/clear-fall
+ * 清除 ESP32 上�?跌倒�??? * 端�?：POST http://ESP32_IP:8080/clear-fall
  * 
- * 注意：此函數會拋出錯誤，不會返回 false
+ * 注�?：此?�數?��??�錯誤�?不�?返�? false
  */
 export const clearESP32FallDetection = async (): Promise<boolean> => {
   const controller = new AbortController();
@@ -171,49 +164,47 @@ export const clearESP32FallDetection = async (): Promise<boolean> => {
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      throw new Error(`ESP32 回應錯誤: HTTP ${response.status}`);
+      throw new Error(`ESP32 ?��??�誤: HTTP ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('[ESP32-API] ✅ 跌倒狀態已清除:', data);
+    console.log('[ESP32-API] ??跌倒�??�已清除:', data);
     return true;
   } catch (error) {
     clearTimeout(timeoutId);
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('[ESP32-API] ❌ 無法清除跌倒狀態:', errorMessage);
-    throw new Error(`ESP32 清除跌倒失敗: ${errorMessage}`);
+    console.error('[ESP32-API] ???��?清除跌倒�???', errorMessage);
+    throw new Error(`ESP32 清除跌倒失?? ${errorMessage}`);
   }
 };
 
 /**
- * 更新 ESP32 伺服器設定（在運行時改變 IP 和連接埠）
+ * ?�新 ESP32 伺�??�設定�??��?行�??��? IP ?��?��?��?
  */
 export const updateESP32Config = (newHost: string, newPort: number): void => {
   ESP32_SERVER.host = newHost;
   ESP32_SERVER.port = newPort;
-  // 重置連線狀態
-  isConnected = false;
+  // ?�置????�??  isConnected = false;
   lastSuccessfulConnection = 0;
-  console.log('[ESP32-API] 🔧 ESP32 設定已更新:', ESP32_SERVER);
+  console.log('[ESP32-API] ?�� ESP32 設�?已更??', ESP32_SERVER);
 };
 
 /**
- * 檢查 ESP32 是否已連接
+ * 檢查 ESP32 ?�否已�?��
  */
 export const isESP32Connected = (): boolean => {
   return isConnected;
 };
 
 /**
- * 取得最後一次成功連接的時間戳
+ * ?��??�後�?次�??��?��?��??�戳
  */
 export const getLastConnectionTime = (): number => {
   return lastSuccessfulConnection;
 };
 
 /**
- * 取得 ESP32 連線狀態摘要
- */
+ * ?��? ESP32 ????�?��?�? */
 export const getESP32ConnectionStatus = (): {
   connected: boolean;
   lastConnection: number;
@@ -227,13 +218,12 @@ export const getESP32ConnectionStatus = (): {
 };
 
 /**
- * 健康檢查 - 快速確認 ESP32 是否可達
- * 端點：GET http://ESP32_IP:8080/health
+ * ?�康檢查 - 快速確�?ESP32 ?�否?��?
+ * 端�?：GET http://ESP32_IP:8080/health
  */
 export const checkESP32Health = async (): Promise<boolean> => {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 2000); // 快速超時
-
+  const timeoutId = setTimeout(() => controller.abort(), 2000); // 快速�???
   try {
     const response = await fetch(getESP32URL('/health'), {
       method: 'GET',

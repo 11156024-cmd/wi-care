@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Settings, AlertCircle, CheckCircle, Wifi } from 'lucide-react';
-import { esp32Service } from '../services/esp32Service';
-import { updateESP32Config, checkESP32Health } from '../services/mockApi';
+import { esp32Service } from '../services/WiCare.ESP32Service';
+import { updateESP32Config, checkESP32Health } from '../services/WiCare.ESP32Api';
 
 interface ESP32SettingsModalProps {
   isOpen: boolean;
@@ -10,7 +10,7 @@ interface ESP32SettingsModalProps {
 }
 
 const ESP32SettingsModal: React.FC<ESP32SettingsModalProps> = ({ isOpen, onClose, onSettingsSaved }) => {
-  // 從當前配置初始化，預設使用實際的 ESP32 IP
+  // 從當?��?置�?始�?，�?設使?�實?��? ESP32 IP
   const currentConfig = esp32Service.getConfig();
   const [host, setHost] = useState<string>(currentConfig.host || '172.20.10.9');
   const [port, setPort] = useState<number>(currentConfig.port || 8080);
@@ -32,20 +32,20 @@ const ESP32SettingsModal: React.FC<ESP32SettingsModalProps> = ({ isOpen, onClose
         useWebSocket
       });
       
-      // 同步更新 mockApi 的 ESP32 配置（用於狀態輪詢）
+      // ?�步?�新 mockApi ??ESP32 ?�置（用?��??�輪詢�?
       updateESP32Config(host, port);
 
-      // 先測試 HTTP 連接
+      // ?�測�?HTTP ??��
       const healthOk = await checkESP32Health();
       if (!healthOk) {
-        throw new Error(`無法連接到 ESP32 (${host}:${port})`);
+        throw new Error(`?��???��??ESP32 (${host}:${port})`);
       }
 
       // Try to connect via WebSocket (optional)
       try {
         await esp32Service.connect();
       } catch (wsError) {
-        console.log('[ESP32] WebSocket 連接失敗，將使用 HTTP 模式');
+        console.log('[ESP32] WebSocket ??��失�?，�?使用 HTTP 模�?');
       }
       
       setConnectionStatus('connected');
@@ -61,7 +61,7 @@ const ESP32SettingsModal: React.FC<ESP32SettingsModalProps> = ({ isOpen, onClose
       setErrorMessage(
         error instanceof Error 
           ? error.message 
-          : '無法連接到 ESP32 設備'
+          : '?��???��??ESP32 設�?'
       );
       setTesting(false);
     }
@@ -79,8 +79,8 @@ const ESP32SettingsModal: React.FC<ESP32SettingsModalProps> = ({ isOpen, onClose
               <Settings className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-900">ESP32 設定</h2>
-              <p className="text-xs text-slate-500 font-medium mt-1">配置設備連接</p>
+              <h2 className="text-xl font-bold text-slate-900">ESP32 設�?</h2>
+              <p className="text-xs text-slate-500 font-medium mt-1">?�置設�???��</p>
             </div>
           </div>
           <button
@@ -107,7 +107,7 @@ const ESP32SettingsModal: React.FC<ESP32SettingsModalProps> = ({ isOpen, onClose
             }`} />
             <div>
               <p className="font-semibold text-sm">
-                {esp32Service.getConnectionStatus() ? '已連接' : '未連接'}
+                {esp32Service.getConnectionStatus() ? '已�?��' : '?��?��'}
               </p>
               <p className="text-xs text-slate-600 mt-1">
                 {currentConfig.host}:{currentConfig.port}
@@ -118,25 +118,25 @@ const ESP32SettingsModal: React.FC<ESP32SettingsModalProps> = ({ isOpen, onClose
           {/* Host Input */}
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2">
-              ESP32 IP 地址 <span className="text-red-500">*</span>
+              ESP32 IP ?��? <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={host}
               onChange={(e) => setHost(e.target.value)}
-              placeholder="例如: 192.168.1.100"
+              placeholder="例�?: 192.168.1.100"
               disabled={testing}
               className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-300 focus:outline-none disabled:bg-slate-50 disabled:text-slate-500"
             />
             <p className="text-xs text-slate-500 mt-2">
-              連接到 ESP32-S3 開發板的 IP 地址
+              ??��??ESP32-S3 ?�發?��? IP ?��?
             </p>
           </div>
 
           {/* Port Input */}
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2">
-              連接埠 <span className="text-red-500">*</span>
+              ??��??<span className="text-red-500">*</span>
             </label>
             <input
               type="number"
@@ -149,14 +149,14 @@ const ESP32SettingsModal: React.FC<ESP32SettingsModalProps> = ({ isOpen, onClose
               className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-300 focus:outline-none disabled:bg-slate-50 disabled:text-slate-500"
             />
             <p className="text-xs text-slate-500 mt-2">
-              WebSocket 或 HTTP API 連接埠
+              WebSocket ??HTTP API ??��??
             </p>
           </div>
 
           {/* WebSocket Toggle */}
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-3">
-              連接方式
+              ??��?��?
             </label>
             <div className="flex gap-3">
               <button
@@ -184,8 +184,8 @@ const ESP32SettingsModal: React.FC<ESP32SettingsModalProps> = ({ isOpen, onClose
             </div>
             <p className="text-xs text-slate-500 mt-2">
               {useWebSocket
-                ? 'WebSocket：用於實時雙向通信'
-                : 'HTTP API：用於簡單的 REST 調用'
+                ? 'WebSocket：用?�實?��??�通信'
+                : 'HTTP API：用?�簡?��? REST 調用'
               }
             </p>
           </div>
@@ -202,7 +202,7 @@ const ESP32SettingsModal: React.FC<ESP32SettingsModalProps> = ({ isOpen, onClose
           {connectionStatus === 'connected' && (
             <div className="p-3 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3">
               <CheckCircle className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
-              <p className="text-sm text-green-700">已成功連接到 ESP32！</p>
+              <p className="text-sm text-green-700">已�??��?��??ESP32�?/p>
             </div>
           )}
 
@@ -212,18 +212,18 @@ const ESP32SettingsModal: React.FC<ESP32SettingsModalProps> = ({ isOpen, onClose
               <div className="animate-spin">
                 <Wifi className="w-5 h-5 text-blue-600" />
               </div>
-              <p className="text-sm text-blue-700">正在連接到設備...</p>
+              <p className="text-sm text-blue-700">�?��??��?�設??..</p>
             </div>
           )}
 
           {/* Instructions */}
           <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-            <h4 className="font-semibold text-sm text-slate-900 mb-2">設置步驟：</h4>
+            <h4 className="font-semibold text-sm text-slate-900 mb-2">設置步�?�?/h4>
             <ol className="text-xs text-slate-700 space-y-1 list-decimal list-inside">
-              <li>確保 ESP32-S3 開發板已上傳網頁伺服器代碼</li>
-              <li>記錄開發板的 IP 地址和連接埠</li>
-              <li>輸入上述地址和連接埠</li>
-              <li>點擊「測試並保存」驗證連接</li>
+              <li>確�? ESP32-S3 ?�發?�已上傳網�?伺�??�代�?/li>
+              <li>記�??�發?��? IP ?��??��?��??/li>
+              <li>輸入上述?��??��?��??/li>
+              <li>點�??�測試並保�??��?證�?��</li>
             </ol>
           </div>
         </div>
@@ -235,7 +235,7 @@ const ESP32SettingsModal: React.FC<ESP32SettingsModalProps> = ({ isOpen, onClose
             disabled={testing}
             className="flex-1 px-4 py-2.5 rounded-lg border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 transition-colors disabled:opacity-50"
           >
-            取消
+            ?��?
           </button>
           <button
             onClick={handleSaveSettings}
@@ -247,10 +247,10 @@ const ESP32SettingsModal: React.FC<ESP32SettingsModalProps> = ({ isOpen, onClose
                 <div className="animate-spin">
                   <Wifi className="w-4 h-4" />
                 </div>
-                <span>測試中...</span>
+                <span>測試�?..</span>
               </>
             ) : (
-              '測試並保存'
+              '測試並�?�?
             )}
           </button>
         </div>
@@ -260,3 +260,4 @@ const ESP32SettingsModal: React.FC<ESP32SettingsModalProps> = ({ isOpen, onClose
 };
 
 export default ESP32SettingsModal;
+

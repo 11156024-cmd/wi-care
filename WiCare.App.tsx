@@ -22,21 +22,21 @@ import {
   Cell
 } from 'recharts';
 
-import { SystemStatus, DashboardStats, SceneMode, RegistrationData } from './types';
-import { fetchDeviceStatus, isESP32Connected, getESP32ConnectionStatus, checkESP32Health } from './services/mockApi';
-import { audioService } from './services/audioService';
-import { lineService } from './services/lineService'; // Import LineService
-import { esp32Service } from './services/esp32Service'; // Import ESP32 Service
-import StatusVisual from './components/StatusVisual';
-import AlertOverlay from './components/AlertOverlay';
-import HiddenControls from './components/HiddenControls';
-import WaveformMonitor from './components/WaveformMonitor';
-import SettingsModal from './components/SettingsModal';
-import CaregiverProfileView from './components/CaregiverProfileView';
-import ElderlyHealthPassport from './components/ElderlyHealthPassport';
-import DeviceSetupView from './components/DeviceSetupView';
-import RegistrationModal from './components/RegistrationModal';
-import ESP32SettingsModal from './components/ESP32SettingsModal';
+import { SystemStatus, DashboardStats, SceneMode, RegistrationData } from './WiCare.Types';
+import { fetchDeviceStatus, isESP32Connected, getESP32ConnectionStatus, checkESP32Health } from './services/WiCare.ESP32Api';
+import { audioService } from './services/WiCare.AudioService';
+import { lineService } from './services/WiCare.LineService';
+import { esp32Service } from './services/WiCare.ESP32Service';
+import StatusVisual from './components/WiCare.StatusVisual';
+import AlertOverlay from './components/WiCare.AlertOverlay';
+import HiddenControls from './components/WiCare.HiddenControls';
+import WaveformMonitor from './components/WiCare.WaveformMonitor';
+import SettingsModal from './components/WiCare.SettingsModal';
+import CaregiverProfileView from './components/WiCare.CaregiverProfileView';
+import ElderlyHealthPassport from './components/WiCare.ElderlyHealthPassport';
+import DeviceSetupView from './components/WiCare.DeviceSetupView';
+import RegistrationModal from './components/WiCare.RegistrationModal';
+import ESP32SettingsModal from './components/WiCare.ESP32SettingsModal';
 
 // Mock Data for Charts
 const ACTIVITY_DATA = [
@@ -51,7 +51,7 @@ const ACTIVITY_DATA = [
 const App: React.FC = () => {
   // --- State (Model) ---
   const [status, setStatus] = useState<SystemStatus>(SystemStatus.SAFE);
-  const [isOffline, setIsOffline] = useState<boolean>(true); // 預設離線直到確認連接
+  const [isOffline, setIsOffline] = useState<boolean>(true); // ?�設?��??�到確�???��
   const [esp32Connected, setEsp32Connected] = useState<boolean>(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [showDevTools, setShowDevTools] = useState<boolean>(false);
@@ -66,7 +66,7 @@ const App: React.FC = () => {
   const [deviceId, setDeviceId] = useState<string>('Wi-Care-Station-01');
   
   const [stats, setStats] = useState<DashboardStats>({
-    lastActivity: '剛剛',
+    lastActivity: '?��?',
     activityHours: 4.5
   });
   
@@ -75,28 +75,27 @@ const App: React.FC = () => {
 
   // --- ViewModel Logic ---
 
-  // 初始化 ESP32 連接
+  // ?��???ESP32 ??��
   useEffect(() => {
     const initializeESP32 = async () => {
       try {
-        console.log('[App] 正在初始化 ESP32 連接...');
+        console.log('[App] �?��?��???ESP32 ??��...');
         
-        // 先檢查健康狀態
-        const isHealthy = await checkESP32Health();
+        // ?�檢?�健康�???        const isHealthy = await checkESP32Health();
         if (!isHealthy) {
-          throw new Error('ESP32 健康檢查失敗');
+          throw new Error('ESP32 ?�康檢查失�?');
         }
         
         await esp32Service.connect();
-        console.log('[App] ✅ ESP32 連接成功');
+        console.log('[App] ??ESP32 ??��?��?');
         setEsp32Connected(true);
         setIsOffline(false);
         setConnectionError(null);
-        // 初始時設置為綠色（安全狀態）
+        // ?��??�設置為綠色（�??��??��?
         await esp32Service.setToSafe();
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
-        console.error('[App] ❌ ESP32 連接失敗:', errorMsg);
+        console.error('[App] ??ESP32 ??��失�?:', errorMsg);
         setEsp32Connected(false);
         setIsOffline(true);
         setConnectionError(errorMsg);
@@ -106,29 +105,29 @@ const App: React.FC = () => {
 
     initializeESP32();
 
-    // 清理：應用卸載時斷開連接
+    // 清�?：�??�卸載�??��???��
     return () => {
       esp32Service.disconnect();
     };
   }, []);
 
-  // 從 ESP32 獲取真實數據 - 無假數據降級
+  // �?ESP32 ?��??�實?��? - ?��??��??��?
   const fetchData = useCallback(async () => {
     try {
       const result = await fetchDeviceStatus(false);
       
-      // 真實 ESP32 數據
+      // ?�實 ESP32 ?��?
       const newStatus = result.status === 'fall' ? SystemStatus.FALL : SystemStatus.SAFE;
       setStatus(newStatus);
       setIsOffline(false);
       setEsp32Connected(true);
       setConnectionError(null);
       
-      console.log('[App] 📡 ESP32 狀態:', result.status, '| 設備:', result.device_id);
+      console.log('[App] ?�� ESP32 ?�??', result.status, '| 設�?:', result.device_id);
     } catch (error) {
-      // ESP32 連接失敗 - 顯示離線狀態，不使用假數據
+      // ESP32 ??��失�? - 顯示?��??�?��?不使?��??��?
       const errorMsg = error instanceof Error ? error.message : String(error);
-      console.error('[App] ⚠️ ESP32 連接錯誤:', errorMsg);
+      console.error('[App] ?��? ESP32 ??��?�誤:', errorMsg);
       
       setIsOffline(true);
       setEsp32Connected(false);
@@ -154,9 +153,9 @@ const App: React.FC = () => {
       // 2. Control ESP32 LED - Red with blinking
       esp32Service.triggerEmergencyAlarm().then(success => {
         if (success) {
-          console.log('[App] ESP32 緊急警報已觸發');
+          console.log('[App] ESP32 緊急警?�已觸發');
         } else {
-          console.log('[App] ESP32 控制失敗，但繼續正常流程');
+          console.log('[App] ESP32 ?�制失�?，�?繼�?�?��流�?');
         }
       });
 
@@ -173,56 +172,53 @@ const App: React.FC = () => {
       audioService.stopAlarm();
       if (status === SystemStatus.SAFE) {
         hasNotifiedRef.current = false;
-        // 設置 ESP32 為安全狀態（綠色）
-        esp32Service.setToSafe().then(success => {
+        // 設置 ESP32 ?��??��??��?綠色�?        esp32Service.setToSafe().then(success => {
           if (success) {
-            console.log('[App] ESP32 已設置為安全狀態');
+            console.log('[App] ESP32 已設置為安全?�??);
           }
         });
       }
     }
   }, [status]);
 
-  // 手動測試功能（開發用）- 直接觸發 ESP32
+  // ?��?測試?�能（�??�用�? ?�接觸發 ESP32
   const handleForceSafe = async () => {
     try {
-      // 調用真實 ESP32 API 清除跌倒狀態
-      const { clearESP32FallDetection } = await import('./services/mockApi');
+      // 調用?�實 ESP32 API 清除跌倒�???      const { clearESP32FallDetection } = await import('./services/WiCare.ESP32Api');
       await clearESP32FallDetection();
-      console.log('[App] 🟢 已請求 ESP32 清除跌倒狀態');
+      console.log('[App] ?�� 已�?�?ESP32 清除跌倒�???);
     } catch (error) {
-      console.error('[App] ❌ 無法清除跌倒狀態:', error);
-      alert('無法連接到 ESP32 來清除狀態');
+      console.error('[App] ???��?清除跌倒�???', error);
+      alert('?��???��??ESP32 來�??��???);
     }
   };
 
   const handleForceFall = async () => {
     try {
-      // 調用真實 ESP32 API 觸發跌倒
-      const { triggerESP32FallDetection } = await import('./services/mockApi');
+      // 調用?�實 ESP32 API 觸發跌�?      const { triggerESP32FallDetection } = await import('./services/WiCare.ESP32Api');
       await triggerESP32FallDetection();
-      console.log('[App] 🔴 已請求 ESP32 觸發跌倒');
+      console.log('[App] ?�� 已�?�?ESP32 觸發跌�?);
     } catch (error) {
-      console.error('[App] ❌ 無法觸發跌倒:', error);
-      alert('無法連接到 ESP32 來觸發跌倒');
+      console.error('[App] ???��?觸發跌�?', error);
+      alert('?��???��??ESP32 來觸?��???);
     }
   };
 
   const handleDismissAlert = async () => {
     try {
-      const { clearESP32FallDetection } = await import('./services/mockApi');
+      const { clearESP32FallDetection } = await import('./services/WiCare.ESP32Api');
       await clearESP32FallDetection();
       audioService.stopAlarm();
-      console.log('[App] ✅ 警報已解除');
+      console.log('[App] ??警報已解??);
     } catch (error) {
-      console.error('[App] ❌ 無法解除警報:', error);
-      // 至少停止本地警報
+      console.error('[App] ???��?�?��警報:', error);
+      // ?��??�止?�地警報
       audioService.stopAlarm();
     }
   };
 
   const handleCallFamilyRequest = () => {
-    alert("照片已儲存。正在撥打緊急聯絡人：+1 234 567 890");
+    alert("?��?已儲存。正?�撥?��??�聯絡人�?1 234 567 890");
   };
 
   const handleManualSOS = async () => {
@@ -231,18 +227,17 @@ const App: React.FC = () => {
     }
     
     try {
-      // 觸發 ESP32 跌倒警報
-      const { triggerESP32FallDetection } = await import('./services/mockApi');
+      // 觸發 ESP32 跌倒警??      const { triggerESP32FallDetection } = await import('./services/WiCare.ESP32Api');
       await triggerESP32FallDetection();
       
       // Also trigger LINE for manual SOS
       lineService.sendFallAlert();
-      alert("已觸發手動緊急呼救！正在通知家族成員並建立通話...");
+      alert("已觸?��??��??�呼?��?�?��?�知家�??�員並建立通話...");
     } catch (error) {
-      console.error('[App] ❌ 手動 SOS 失敗:', error);
-      // 即使 ESP32 失敗，仍然發送 LINE 通知
+      console.error('[App] ???��? SOS 失�?:', error);
+      // ?�使 ESP32 失�?，�??�發??LINE ?�知
       lineService.sendFallAlert();
-      alert("已發送緊急通知（ESP32 連接問題，但 LINE 通知已發送）");
+      alert("已發?��??�通知（ESP32 ??��?��?，�? LINE ?�知已發?��?");
     }
   };
 
@@ -250,7 +245,7 @@ const App: React.FC = () => {
     console.log('Registration submitted:', data);
     // Here you would typically send the data to your backend API
     // For now, we'll just log it and show a success message
-    alert(`歡迎 ${data.name}! 您的帳號已成功建立。`);
+    alert(`歡�? ${data.name}! ?��?帳�?已�??�建立。`);
   };
 
   return (
@@ -294,7 +289,7 @@ const App: React.FC = () => {
         isOpen={showESP32Settings}
         onClose={() => setShowESP32Settings(false)}
         onSettingsSaved={() => {
-          console.log('ESP32 設置已保存');
+          console.log('ESP32 設置已�?�?);
         }}
       />
 
@@ -328,7 +323,7 @@ const App: React.FC = () => {
             <button 
                 onClick={() => setShowHealthPassport(true)}
                 className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full hover:bg-slate-50 text-slate-400 hover:text-rose-500 transition-colors"
-                title="健康卡"
+                title="?�康??
             >
                 <FileHeart className="w-5 h-5" />
             </button>
@@ -336,7 +331,7 @@ const App: React.FC = () => {
             <button 
                 onClick={() => setShowESP32Settings(true)}
                 className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full hover:bg-slate-50 text-slate-400 hover:text-purple-500 transition-colors"
-                title="ESP32 設定"
+                title="ESP32 設�?"
             >
                 <AlertTriangle className="w-5 h-5" />
             </button>
@@ -344,7 +339,7 @@ const App: React.FC = () => {
             <button 
                 onClick={() => setShowDeviceSetup(true)}
                 className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full hover:bg-slate-50 text-slate-400 hover:text-indigo-500 transition-colors"
-                title="裝置設定"
+                title="裝置設�?"
             >
                 <Cpu className="w-5 h-5" />
             </button>
@@ -352,7 +347,7 @@ const App: React.FC = () => {
             <button 
                 onClick={() => setShowDevTools(true)}
                 className={`w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full hover:bg-slate-50 transition-colors ${esp32Connected ? 'text-green-500' : 'text-red-500'}`}
-                title="開發者選項"
+                title="?�發?�選??
             >
                 <Zap className={`w-5 h-5 ${esp32Connected ? '' : 'animate-pulse'}`} />
             </button>
@@ -370,25 +365,24 @@ const App: React.FC = () => {
             <button
               onClick={handleForceFall}
               className="px-3 py-2 rounded-full bg-red-600 text-white font-semibold text-sm hover:bg-red-700 transition-colors active:scale-95"
-              title="觸發緊急 (Force Fall)"
+              title="觸發緊�?(Force Fall)"
             >
-              觸發緊急
-            </button>
+              觸發緊�?            </button>
             <button
               onClick={handleForceSafe}
               className="px-3 py-2 rounded-full bg-green-600 text-white font-semibold text-sm hover:bg-green-700 transition-colors active:scale-95"
-              title="恢復安全 (Force Safe)"
+              title="?�復安全 (Force Safe)"
             >
-              恢復安全
+              ?�復安全
             </button>
           </div>
 
           <button 
             onClick={() => setShowRegistration(true)}
             className="hidden sm:flex px-4 py-2 rounded-full bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-700 transition-colors active:scale-95 whitespace-nowrap"
-            title="建立帳號"
+            title="建�?帳�?"
           >
-            註冊
+            註�?
           </button>
         </div>
       </header>
@@ -398,7 +392,7 @@ const App: React.FC = () => {
         <button 
           onClick={() => setShowRegistration(true)}
           className="w-14 h-14 rounded-full bg-indigo-600 text-white shadow-lg flex items-center justify-center hover:bg-indigo-700 transition-colors active:scale-95"
-          title="建立帳號"
+          title="建�?帳�?"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -430,10 +424,10 @@ const App: React.FC = () => {
 
                     <div className="text-center relative z-10 mt-2">
                         <h2 className={`text-2xl sm:text-4xl font-black tracking-tight mb-2 ${status === SystemStatus.SAFE ? 'text-slate-800' : 'text-red-600'}`}>
-                            {status === SystemStatus.SAFE ? '一切安好' : status === SystemStatus.FALL ? '⚠️ 緊急' : '系統離線'}
+                            {status === SystemStatus.SAFE ? '一?��?�? : status === SystemStatus.FALL ? '?��? 緊�? : '系統?��?'}
                         </h2>
                         <p className="text-slate-500 font-medium text-sm sm:text-lg px-2">
-                            {status === SystemStatus.SAFE ? 'Wi-Care 正在全時守護您的家人' : status === SystemStatus.FALL ? '偵測到跌倒！正在聯絡家族成員...' : '設備暫時離線，請檢查連接'}
+                            {status === SystemStatus.SAFE ? 'Wi-Care �?��?��?守護?��?家人' : status === SystemStatus.FALL ? '?�測?��??��?�?��?�絡家�??�員...' : '設�??��??��?，�?檢查??��'}
                         </p>
                     </div>
                 </div>
@@ -453,7 +447,7 @@ const App: React.FC = () => {
                              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-indigo-50 flex items-center justify-center shrink-0">
                                 <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
                              </div>
-                             <h3 className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">上次活動</h3>
+                             <h3 className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">上次活�?</h3>
                         </div>
                         <div>
                              <span className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">{stats.lastActivity}</span>
@@ -472,7 +466,7 @@ const App: React.FC = () => {
                              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-purple-50 flex items-center justify-center shrink-0">
                                 <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
                              </div>
-                             <h3 className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">今日活動</h3>
+                             <h3 className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">今日活�?</h3>
                         </div>
                         <div className="flex items-baseline gap-2">
                              <span className="text-3xl sm:text-4xl font-black text-purple-600 tracking-tight">{stats.activityHours}</span>
@@ -502,7 +496,7 @@ const App: React.FC = () => {
                             <BarChart2 className="w-5 h-5 sm:w-6 sm:h-6" />
                         </div>
                         <div>
-                            <h2 className="font-bold text-lg sm:text-xl text-slate-800">24h 活動趨勢</h2>
+                            <h2 className="font-bold text-lg sm:text-xl text-slate-800">24h 活�?趨勢</h2>
                             <p className="text-xs sm:text-sm text-slate-400 font-medium">Activity Trends</p>
                         </div>
                     </div>
@@ -545,7 +539,7 @@ const App: React.FC = () => {
                         <Plug className="w-5 h-5 sm:w-6 sm:h-6" />
                      </div>
                      <div>
-                        <h2 className="font-bold text-lg sm:text-xl text-slate-800">快速捷徑</h2>
+                        <h2 className="font-bold text-lg sm:text-xl text-slate-800">快速捷�?/h2>
                         <p className="text-xs sm:text-sm text-slate-400 font-medium">Quick Actions</p>
                      </div>
                  </div>
@@ -560,8 +554,8 @@ const App: React.FC = () => {
                                 <PhoneOutgoing className="w-6 h-6 sm:w-7 sm:h-7" />
                            </div>
                            <div className="text-left">
-                                <span className="block font-bold text-base sm:text-lg text-red-700">手動呼救</span>
-                                <span className="text-xs sm:text-sm opacity-70 font-medium">觸發緊急 SOS</span>
+                                <span className="block font-bold text-base sm:text-lg text-red-700">?��??��?</span>
+                                <span className="text-xs sm:text-sm opacity-70 font-medium">觸發緊�?SOS</span>
                            </div>
                       </button>
 
@@ -574,8 +568,8 @@ const App: React.FC = () => {
                                 <FileHeart className="w-6 h-6 sm:w-7 sm:h-7" />
                            </div>
                            <div className="text-left">
-                                <span className="block font-bold text-base sm:text-lg text-slate-700">健康報告</span>
-                                <span className="text-xs sm:text-sm opacity-70 font-medium">查看詳細數據</span>
+                                <span className="block font-bold text-base sm:text-lg text-slate-700">?�康?��?</span>
+                                <span className="text-xs sm:text-sm opacity-70 font-medium">?��?詳細?��?</span>
                            </div>
                       </button>
                  </div>

@@ -41,7 +41,7 @@ const ElderlyHealthPassport: React.FC<ElderlyHealthPassportProps> = ({ isOpen, o
         </button>
         <div className="flex items-center gap-2">
             <FileHeart className="w-5 h-5 text-rose-500" />
-            <h1 className="font-bold text-lg text-slate-800">長輩健康資料卡</h1>
+            <h1 className="font-bold text-lg text-slate-800">?�輩?�康資�???/h1>
         </div>
         <div className="w-10" /> 
       </div>
@@ -51,10 +51,9 @@ const ElderlyHealthPassport: React.FC<ElderlyHealthPassportProps> = ({ isOpen, o
           <div className="bg-amber-50 border-b border-amber-100 px-6 py-3 flex items-start gap-3 animate-in slide-in-from-top-2 duration-500">
               <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
               <div>
-                  <p className="text-sm font-bold text-amber-700">高風險警示</p>
+                  <p className="text-sm font-bold text-amber-700">高風?�警�?/p>
                   <p className="text-xs text-amber-600 mt-0.5 leading-relaxed">
-                      此長輩屬於跌倒高風險群。系統建議您開啟「高靈敏度偵測」模式以確保安全。
-                  </p>
+                      此長輩屬?��??��?風險群。系統建議您?��??��??��?度偵測」模式以確�?安全??                  </p>
               </div>
           </div>
       )}
@@ -94,7 +93,7 @@ const ElderlyHealthPassport: React.FC<ElderlyHealthPassportProps> = ({ isOpen, o
                                 type="text"
                                 value={profile.nickname}
                                 onChange={(e) => updateField('nickname', e.target.value)}
-                                placeholder="例如：爺爺"
+                                placeholder="例�?：爺??
                                 className="w-full text-xl font-bold text-slate-800 border-b border-slate-200 focus:border-rose-500 focus:outline-none py-1 placeholder:font-normal placeholder:text-slate-300 bg-transparent transition-colors"
                             />
                         </div>
@@ -114,7 +113,7 @@ const ElderlyHealthPassport: React.FC<ElderlyHealthPassportProps> = ({ isOpen, o
                             </div>
                             <div className="flex-1">
                                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                                    性別
+                                    ?�別
                                 </label>
                                 <div className="flex gap-2 mt-1">
                                     {(['male', 'female'] as const).map((g) => (
@@ -127,7 +126,7 @@ const ElderlyHealthPassport: React.FC<ElderlyHealthPassportProps> = ({ isOpen, o
                                                 : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
                                             }`}
                                         >
-                                            {g === 'male' ? '男' : '女'}
+                                            {g === 'male' ? '?? : '�?}
                                         </button>
                                     ))}
                                 </div>
@@ -143,14 +142,13 @@ const ElderlyHealthPassport: React.FC<ElderlyHealthPassportProps> = ({ isOpen, o
             <div className="flex items-center gap-2 mb-3 px-1">
                 <Stethoscope className="w-4 h-4 text-slate-400" />
                 <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    病史與風險因子 (Medical Conditions)
+                    ?�史?�風?��?�?(Medical Conditions)
                 </h3>
             </div>
             
             <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
                 <p className="text-xs text-slate-400 mb-4">
-                    請點選長輩現有的健康狀況，系統將依此調整 AI 偵測權重。
-                </p>
+                    請�??�長輩現?��??�康?�況�?系統將�?此調??AI ?�測權�???                </p>
 
                 {/* FlowLayout using Flex wrap */}
                 <div className="flex flex-wrap gap-2.5">
@@ -179,7 +177,7 @@ const ElderlyHealthPassport: React.FC<ElderlyHealthPassportProps> = ({ isOpen, o
           {/* 3. System Feedback Preview */}
           <div className="bg-slate-100/50 rounded-xl p-4 border border-slate-200/50">
              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-slate-400 uppercase">目前風險評估</span>
+                <span className="text-xs font-bold text-slate-400 uppercase">?��?風險評估</span>
                 <span className={`text-xs font-bold px-2 py-1 rounded ${showHighRiskBanner ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
                     {showHighRiskBanner ? 'High Risk' : 'Normal'}
                 </span>
@@ -206,8 +204,7 @@ const ElderlyHealthPassport: React.FC<ElderlyHealthPassportProps> = ({ isOpen, o
             }`}
           >
             <Activity className="w-5 h-5" />
-            更新健康資料卡
-          </button>
+            ?�新?�康資�???          </button>
 
         </div>
       </div>

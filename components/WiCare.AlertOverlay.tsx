@@ -65,8 +65,8 @@ const AlertOverlay: React.FC<AlertOverlayProps> = ({ isVisible, onDismiss, onCal
           {/* Icon with subtle bounce animation */}
           <AlertOctagon className="w-32 h-32 text-white mb-6 animate-subtle-bounce" />
           
-          <h1 className="text-4xl font-black text-white mb-2 uppercase tracking-widest">緊急警報！</h1>
-          <p className="text-xl text-red-100 mb-12 font-medium">已偵測到跌倒，正在請求協助。</p>
+          <h1 className="text-4xl font-black text-white mb-2 uppercase tracking-widest">緊急警?��?</h1>
+          <p className="text-xl text-red-100 mb-12 font-medium">已偵測到跌倒�?�?��請�??�助??/p>
 
           <div className="flex flex-col gap-4 w-full">
             <button 
@@ -74,16 +74,14 @@ const AlertOverlay: React.FC<AlertOverlayProps> = ({ isVisible, onDismiss, onCal
               className="w-full bg-white text-red-600 hover:bg-red-50 py-5 rounded-2xl flex items-center justify-center gap-3 text-xl font-bold shadow-xl transition-transform active:scale-95"
             >
               <Phone className="w-6 h-6" />
-              撥打電話給家人
-            </button>
+              ?��??�話給家�?            </button>
             
             <button 
               onClick={handleDismiss}
               className="w-full bg-red-800 text-white hover:bg-red-900 border border-red-400/30 py-4 rounded-2xl flex items-center justify-center gap-3 text-lg font-semibold transition-colors"
             >
               <XCircle className="w-6 h-6" />
-              誤報，解除警報
-            </button>
+              誤報，解?�警??            </button>
           </div>
         </div>
       </div>

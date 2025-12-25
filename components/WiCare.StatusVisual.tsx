@@ -1,6 +1,6 @@
 import React from 'react';
 import { ShieldCheck, Activity, AlertTriangle } from 'lucide-react';
-import { SystemStatus } from '../types';
+import { SystemStatus } from '../WiCare.Types';
 
 interface StatusVisualProps {
   status: SystemStatus;
@@ -29,7 +29,7 @@ const StatusVisual: React.FC<StatusVisualProps> = ({ status }) => {
         
         <div className="relative z-10 flex flex-col items-center justify-center text-center">
              <AlertTriangle className="w-[35%] h-[35%] text-red-600 animate-urgent" />
-             <p className="mt-2 sm:mt-4 text-xl sm:text-2xl font-bold text-red-700 animate-bounce whitespace-nowrap">åµæ¸¬åˆ°è·Œå€’ï¼</p>
+             <p className="mt-2 sm:mt-4 text-xl sm:text-2xl font-bold text-red-700 animate-bounce whitespace-nowrap">?µæ¸¬?°è??’ï?</p>
         </div>
       </Container>
     );
@@ -40,7 +40,7 @@ const StatusVisual: React.FC<StatusVisualProps> = ({ status }) => {
       <Container className="bg-gray-100 rounded-full border-4 border-gray-300">
         <div className="flex flex-col items-center">
             <Activity className="w-[30%] h-[30%] text-gray-400" />
-            <p className="mt-2 text-gray-500 font-medium text-sm sm:text-base">é€£ç·šä¸­...</p>
+            <p className="mt-2 text-gray-500 font-medium text-sm sm:text-base">???ä¸?..</p>
         </div>
       </Container>
     );
@@ -56,7 +56,7 @@ const StatusVisual: React.FC<StatusVisualProps> = ({ status }) => {
         <ShieldCheck className="w-full h-full text-green-500 p-2" />
       </div>
       <div className="absolute bottom-[15%] left-0 right-0 text-center">
-         <p className="text-lg sm:text-2xl font-bold text-green-600 tracking-tight">ç‹€æ…‹å®‰å…¨</p>
+         <p className="text-lg sm:text-2xl font-bold text-green-600 tracking-tight">?€?‹å???/p>
       </div>
     </Container>
   );

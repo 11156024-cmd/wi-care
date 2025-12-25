@@ -44,7 +44,7 @@ const DeviceSetupView: React.FC<DeviceSetupViewProps> = ({ isOpen, onClose }) =>
         </button>
         <div className="flex items-center gap-2">
             <Cpu className="w-5 h-5 text-indigo-600" />
-            <h1 className="font-bold text-lg text-slate-800">裝置設定與校正</h1>
+            <h1 className="font-bold text-lg text-slate-800">裝置設�??�校�?/h1>
         </div>
         <div className="w-10" /> 
       </div>
@@ -93,7 +93,7 @@ const DeviceSetupView: React.FC<DeviceSetupViewProps> = ({ isOpen, onClose }) =>
              {/* Section Header */}
              <div className="px-5 py-4 bg-slate-50 flex items-center gap-2">
                 <Settings className="w-4 h-4 text-slate-500" />
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">系統參數設定 (Configuration)</span>
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">系統?�數設�? (Configuration)</span>
              </div>
 
              {/* Item 1: Installation Location */}
@@ -102,7 +102,7 @@ const DeviceSetupView: React.FC<DeviceSetupViewProps> = ({ isOpen, onClose }) =>
                     <div className="w-6 h-6 rounded bg-indigo-50 flex items-center justify-center">
                         <MapPin className="w-3.5 h-3.5 text-indigo-600" />
                     </div>
-                    <label className="text-sm font-bold text-slate-700">安裝位置</label>
+                    <label className="text-sm font-bold text-slate-700">安�?位置</label>
                 </div>
                 
                 <div className="relative w-full">
@@ -112,15 +112,14 @@ const DeviceSetupView: React.FC<DeviceSetupViewProps> = ({ isOpen, onClose }) =>
                         className="w-full appearance-none bg-slate-50 border border-slate-200 hover:border-indigo-300 text-slate-700 font-medium rounded-xl px-4 py-3 pr-10 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all cursor-pointer"
                     >
                         <option value="master_bath">主臥浴室 (Master Bath)</option>
-                        <option value="guest_restroom">客用廁所 (Guest Room)</option>
-                        <option value="bedroom">臥房 (Bedroom)</option>
+                        <option value="guest_restroom">客用廁�? (Guest Room)</option>
+                        <option value="bedroom">?�房 (Bedroom)</option>
                         <option value="living_room">客廳 (Living Room)</option>
                     </select>
                     <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
                 </div>
                 <p className="text-[10px] text-slate-400 mt-2 pl-1">
-                    * 建議安裝高度：離地 1.5m - 2.0m，避免遮蔽物。
-                </p>
+                    * 建議安�?高度：離??1.5m - 2.0m，避?�遮?�物??                </p>
              </div>
 
              {/* Item 2: Room Size */}
@@ -129,7 +128,7 @@ const DeviceSetupView: React.FC<DeviceSetupViewProps> = ({ isOpen, onClose }) =>
                     <div className="w-6 h-6 rounded bg-indigo-50 flex items-center justify-center">
                         <Box className="w-3.5 h-3.5 text-indigo-600" />
                     </div>
-                    <label className="text-sm font-bold text-slate-700">空間大小</label>
+                    <label className="text-sm font-bold text-slate-700">空�?大�?</label>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 bg-slate-100 p-1.5 rounded-xl">
@@ -145,9 +144,9 @@ const DeviceSetupView: React.FC<DeviceSetupViewProps> = ({ isOpen, onClose }) =>
                                     : 'bg-transparent text-slate-500 hover:text-slate-700'
                                 }`}
                             >
-                                {size === 'small' && '小 (<2坪)'}
-                                {size === 'medium' && '中 (3-5坪)'}
-                                {size === 'large' && '大 (>6坪)'}
+                                {size === 'small' && '�?(<2??'}
+                                {size === 'medium' && '�?(3-5??'}
+                                {size === 'large' && '�?(>6??'}
                             </button>
                         );
                     })}
@@ -164,11 +163,10 @@ const DeviceSetupView: React.FC<DeviceSetupViewProps> = ({ isOpen, onClose }) =>
                         <div className="w-6 h-6 rounded bg-indigo-50 flex items-center justify-center">
                             <Dog className="w-3.5 h-3.5 text-indigo-600" />
                         </div>
-                        <span className="text-sm font-bold text-slate-700">抗干擾模式 (寵物)</span>
+                        <span className="text-sm font-bold text-slate-700">?�干?�模�?(寵物)</span>
                     </div>
                     <p className="text-xs text-slate-500 leading-relaxed pl-8">
-                        啟用後，系統將自動過濾離地 50cm 以下的微小移動訊號，以避免貓狗造成誤報。
-                    </p>
+                        ?�用後�?系統將自?��?濾離??50cm 以�??�微小移?��??��?以避?��??�造�?誤報??                    </p>
                 </div>
                 
                 {/* Custom Toggle Switch */}
@@ -188,7 +186,7 @@ const DeviceSetupView: React.FC<DeviceSetupViewProps> = ({ isOpen, onClose }) =>
                         <RefreshCw className="absolute inset-0 m-auto w-6 h-6 text-indigo-500" />
                     </div>
                     <div>
-                        <h3 className="text-lg font-bold text-slate-800">正在校正環境...</h3>
+                        <h3 className="text-lg font-bold text-slate-800">�?��?�正?��?...</h3>
                         <p className="text-sm text-slate-500 font-mono mt-1">{calibrationStep}</p>
                     </div>
                     {/* Progress Bar */}
@@ -206,20 +204,19 @@ const DeviceSetupView: React.FC<DeviceSetupViewProps> = ({ isOpen, onClose }) =>
                  >
                     <div className="w-full py-4 flex items-center justify-center gap-3">
                         <RefreshCw className="w-5 h-5 text-indigo-300 group-hover:rotate-180 transition-transform duration-500" />
-                        <span className="font-bold text-lg">開始環境校正</span>
+                        <span className="font-bold text-lg">?��??��??�正</span>
                     </div>
                     {config.lastCalibrated && (
                         <div className="w-full bg-white/5 py-1.5 text-center border-t border-white/10 rounded-b-xl">
                             <span className="text-[10px] text-slate-400 font-mono">
-                                上次校正: {new Date(config.lastCalibrated).toLocaleDateString()}
+                                上次?�正: {new Date(config.lastCalibrated).toLocaleDateString()}
                             </span>
                         </div>
                     )}
                  </button>
              )}
              <p className="text-[10px] text-slate-400 text-center mt-3 px-4">
-                * 點擊後請保持空間淨空，系統需約 5 秒讀取環境背景值。
-             </p>
+                * 點�?後�?保�?空�?淨空，系統�?�?5 秒�??�環境�??�值�?             </p>
           </div>
 
         </div>

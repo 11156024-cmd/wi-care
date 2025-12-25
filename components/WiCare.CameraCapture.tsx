@@ -36,7 +36,7 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture, onClose }) => 
         }
       } catch (err) {
         // If both attempts fail
-        setError('無法存取相機。請確認裝置有相機且已允許權限。');
+        setError('?��?存�??��??��?確�?裝置?�相機�?已�?許�??��?);
         console.error('Camera access error:', err);
       }
     };
@@ -75,7 +75,7 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture, onClose }) => 
   return (
     <div className="fixed inset-0 z-[60] bg-black flex flex-col">
       <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center bg-gradient-to-b from-black/50 to-transparent z-10">
-        <h2 className="text-white font-semibold text-lg">緊急回報：拍攝現場</h2>
+        <h2 className="text-white font-semibold text-lg">緊急�??��??��??�場</h2>
         <button 
           onClick={onClose}
           className="p-2 rounded-full bg-white/20 text-white backdrop-blur-sm"
@@ -92,7 +92,7 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture, onClose }) => 
               onClick={onClose} 
               className="px-4 py-2 bg-gray-700 rounded-lg"
             >
-              關閉
+              ?��?
             </button>
           </div>
         ) : (

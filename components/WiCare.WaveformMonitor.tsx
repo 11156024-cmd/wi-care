@@ -84,17 +84,17 @@ const WaveformMonitor: React.FC<WaveformMonitorProps> = ({ isOffline }) => {
               {isOffline ? (
                   <>
                     <Radio className="w-4 h-4 sm:w-5 sm:h-5" />
-                    <span>訊號中斷</span>
+                    <span>訊�?中斷</span>
                   </>
               ) : isMoving ? (
                   <>
                     <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
-                    <span>偵測到活動</span>
+                    <span>?�測?�活??/span>
                   </>
               ) : (
                   <>
                     <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" />
-                    <span>靜止中</span>
+                    <span>?�止�?/span>
                   </>
               )}
            </div>

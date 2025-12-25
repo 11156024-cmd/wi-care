@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { User, Camera, ArrowLeft, HelpCircle, Check, AlertCircle, Send, Bot } from 'lucide-react';
 import { useCaregiverViewModel } from '../hooks/useCaregiverViewModel';
-import { lineService } from '../services/lineService';
+import { lineService } from '../services/WiCare.LineService';
 
 interface CaregiverProfileViewProps {
   isOpen: boolean;
@@ -23,7 +23,7 @@ const CaregiverProfileView: React.FC<CaregiverProfileViewProps> = ({ isOpen, onC
 
   const handleTestLine = async () => {
     if (!profile.lineChannelToken || !profile.lineUserId) {
-        alert("請先輸入 Channel Token 與 User ID");
+        alert("請�?輸入 Channel Token ??User ID");
         return;
     }
     setIsTestingLine(true);
@@ -31,9 +31,9 @@ const CaregiverProfileView: React.FC<CaregiverProfileViewProps> = ({ isOpen, onC
     setIsTestingLine(false);
     
     if (success) {
-        alert("測試發送成功！\n(請開啟 Console 查看模擬的 API 請求)");
+        alert("測試?�送�??��?\n(請�???Console ?��?模擬??API 請�?)");
     } else {
-        alert("發送失敗，請檢查設定。");
+        alert("?�送失?��?請檢?�設定�?);
     }
   };
 
@@ -50,7 +50,7 @@ const CaregiverProfileView: React.FC<CaregiverProfileViewProps> = ({ isOpen, onC
         >
           <ArrowLeft className="w-6 h-6" />
         </button>
-        <h1 className="font-bold text-lg text-slate-800">照顧者資料</h1>
+        <h1 className="font-bold text-lg text-slate-800">?�顧?��???/h1>
         <div className="w-10" />
       </div>
 
@@ -72,7 +72,7 @@ const CaregiverProfileView: React.FC<CaregiverProfileViewProps> = ({ isOpen, onC
                 <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
               </label>
             </div>
-            <p className="mt-3 text-sm text-slate-500">點擊更換大頭貼</p>
+            <p className="mt-3 text-sm text-slate-500">點�??��?大頭�?/p>
           </div>
 
           {/* Form Section */}
@@ -81,13 +81,13 @@ const CaregiverProfileView: React.FC<CaregiverProfileViewProps> = ({ isOpen, onC
             {/* Name Input */}
             <div className="p-4 border-b border-slate-50">
               <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-                姓名
+                姓�?
               </label>
               <input 
                 type="text" 
                 value={profile.name}
                 onChange={(e) => updateField('name', e.target.value)}
-                placeholder="請輸入您的姓名"
+                placeholder="請輸?�您?��???
                 className="w-full text-lg text-slate-800 placeholder:text-slate-300 focus:outline-none"
               />
             </div>
@@ -95,7 +95,7 @@ const CaregiverProfileView: React.FC<CaregiverProfileViewProps> = ({ isOpen, onC
             {/* Phone Input */}
             <div className="p-4 border-b border-slate-50 relative">
               <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-                手機號碼
+                ?��??�碼
               </label>
               <input 
                 type="tel" 
@@ -128,26 +128,26 @@ const CaregiverProfileView: React.FC<CaregiverProfileViewProps> = ({ isOpen, onC
               <div className="flex items-center gap-2 mb-2">
                 <Bot className="w-4 h-4 text-[#00B900]" />
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  Line Bot 設定 (Messaging API)
+                  Line Bot 設�? (Messaging API)
                 </label>
                 <button 
                   onClick={() => setShowLineHelp(!showLineHelp)}
                   className="ml-auto text-blue-500 hover:text-blue-600 transition-colors flex items-center gap-1 text-xs"
                 >
                     <HelpCircle className="w-3.5 h-3.5" />
-                    <span className="underline">如何設定？</span>
+                    <span className="underline">如�?設�?�?/span>
                 </button>
               </div>
               
               {showLineHelp && (
                   <div className="mb-4 p-3 bg-blue-50 text-blue-800 text-xs rounded-lg leading-relaxed animate-in fade-in zoom-in-95 duration-200 border border-blue-100">
-                      <p className="font-bold mb-1">請前往 <a href="https://developers.line.biz/console/" target="_blank" className="underline text-blue-600">LINE Developers Console</a>：</p>
+                      <p className="font-bold mb-1">請�?往 <a href="https://developers.line.biz/console/" target="_blank" className="underline text-blue-600">LINE Developers Console</a>�?/p>
                       <ul className="list-decimal pl-4 space-y-1 opacity-90">
-                          <li>建立一個 Provider 與 Messaging API Channel。</li>
-                          <li>在 <strong>Messaging API</strong> 分頁，產生 <strong>Channel access token</strong>。</li>
-                          <li>在 <strong>Basic settings</strong> 分頁，捲到底部找到 <strong>Your user ID</strong> (開發者專用)。</li>
+                          <li>建�?一??Provider ??Messaging API Channel??/li>
+                          <li>??<strong>Messaging API</strong> ?��?，產??<strong>Channel access token</strong>??/li>
+                          <li>??<strong>Basic settings</strong> ?��?，捲?��??�找??<strong>Your user ID</strong> (?�發?��?????/li>
                       </ul>
-                      <p className="mt-2 text-[10px] text-blue-600/70">* 註：正式上線需透過 Webhook 獲取一般用戶 ID。</p>
+                      <p className="mt-2 text-[10px] text-blue-600/70">* 註�?�??上�??�?��? Webhook ?��?一?�用??ID??/p>
                   </div>
               )}
 
@@ -158,7 +158,7 @@ const CaregiverProfileView: React.FC<CaregiverProfileViewProps> = ({ isOpen, onC
                    <textarea
                         value={profile.lineChannelToken}
                         onChange={(e) => updateField('lineChannelToken', e.target.value)}
-                        placeholder="請貼上長串的 Access Token..."
+                        placeholder="請貼上長串�? Access Token..."
                         className="w-full h-16 text-xs font-mono text-slate-600 bg-white border border-slate-200 rounded px-2 py-2 focus:outline-none focus:border-[#00B900] transition-all resize-none"
                     />
                 </div>
@@ -179,7 +179,7 @@ const CaregiverProfileView: React.FC<CaregiverProfileViewProps> = ({ isOpen, onC
                         onClick={handleTestLine}
                         disabled={isTestingLine || !profile.lineChannelToken || !profile.lineUserId}
                         className="bg-[#00B900] hover:bg-[#009900] text-white p-2 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed h-[34px] w-[34px] flex items-center justify-center shrink-0 shadow-sm"
-                        title="測試發送"
+                        title="測試?��?
                     >
                         <Send className={`w-3.5 h-3.5 ${isTestingLine ? 'animate-pulse' : ''}`} />
                     </button>
@@ -200,7 +200,7 @@ const CaregiverProfileView: React.FC<CaregiverProfileViewProps> = ({ isOpen, onC
                 : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
             }`}
           >
-            儲存設定
+            ?��?設�?
           </button>
 
         </div>

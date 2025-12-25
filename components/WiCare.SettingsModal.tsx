@@ -24,7 +24,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         <div className="px-5 py-3 border-b border-slate-100 flex justify-between items-center bg-slate-50/80">
           <div className="flex items-center gap-2">
             <Server className="w-4 h-4 text-slate-500" />
-            <h2 className="text-sm font-bold text-slate-700">系統狀態</h2>
+            <h2 className="text-sm font-bold text-slate-700">系統?�??/h2>
           </div>
           <button 
             onClick={onClose}
@@ -40,17 +40,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
           <div>
             <div className="flex justify-between items-center mb-3">
                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                ESP32-S3 連線狀態
-              </h3>
+                ESP32-S3 ????�??              </h3>
               {esp32Connected ? (
                 <span className="text-[10px] bg-green-100 text-green-600 px-2 py-0.5 rounded font-mono font-bold flex items-center gap-1">
                   <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-                  連線中
-                </span>
+                  ???�?                </span>
               ) : (
                 <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded font-mono font-bold flex items-center gap-1">
                   <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
-                  離線
+                  ?��?
                 </span>
               )}
             </div>
@@ -62,10 +60,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
                 <div className="flex-1">
                   <p className={`font-bold text-sm ${esp32Connected ? 'text-green-700' : 'text-red-700'}`}>
-                    {esp32Connected ? '已連接 ESP32-S3' : 'ESP32-S3 離線'}
+                    {esp32Connected ? '已�?�� ESP32-S3' : 'ESP32-S3 ?��?'}
                   </p>
                   <p className="text-xs text-slate-500">
-                    {esp32Connected ? 'IP: 172.20.10.9:8080' : '請檢查設備電源與網路'}
+                    {esp32Connected ? 'IP: 172.20.10.9:8080' : '請檢?�設?�電源�?網路'}
                   </p>
                 </div>
                 {esp32Connected ? (
@@ -87,10 +85,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
           <div>
             <div className="flex justify-between items-center mb-3">
                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                數據來源
+                ?��?來�?
               </h3>
               <span className="text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded font-mono font-bold">
-                實時數據
+                實�??��?
               </span>
             </div>
             
@@ -100,8 +98,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                   <Server className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="font-bold text-blue-700 text-sm">ESP32 真實感測器</p>
-                  <p className="text-xs text-slate-500">CSI WiFi 動作偵測（無模擬數據）</p>
+                  <p className="font-bold text-blue-700 text-sm">ESP32 ?�實?�測??/p>
+                  <p className="text-xs text-slate-500">CSI WiFi ?��??�測（無模擬?��?�?/p>
                 </div>
               </div>
             </div>
@@ -111,7 +109,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         
         <div className="px-5 py-3 bg-slate-50 text-center border-t border-slate-100">
             <p className="text-[10px] text-slate-400 font-mono">Wi-Care System v2.0.0</p>
-            <p className="text-[10px] text-slate-300 font-mono mt-0.5">ESP32-S3 | 實盤模式 | 無假數據</p>
+            <p className="text-[10px] text-slate-300 font-mono mt-0.5">ESP32-S3 | 實盤模�? | ?��??��?</p>
         </div>
 
       </div>
