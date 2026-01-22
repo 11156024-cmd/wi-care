@@ -1,32 +1,50 @@
 import React from 'react';
-import { X, Server, Wifi, WifiOff, AlertCircle, CheckCircle } from 'lucide-react';
+import { X, Server, Wifi, Bell, Volume2, Vibrate } from 'lucide-react';
 
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  esp32Connected: boolean;
-  connectionError: string | null;
+  settings: {
+    soundEnabled: boolean;
+    vibrationEnabled: boolean;
+    notificationsEnabled: boolean;
+    sensitivity: 'low' | 'medium' | 'high';
+  };
+  onSettingsChange: (settings: SettingsModalProps['settings']) => void;
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({
   isOpen,
   onClose,
-  esp32Connected,
-  connectionError,
+  settings,
+  onSettingsChange
 }) => {
   if (!isOpen) return null;
 
+  const handleToggle = (key: keyof typeof settings) => {
+    if (key === 'sensitivity') return;
+    onSettingsChange({
+      ...settings,
+      [key]: !settings[key]
+    });
+  };
+
+  const handleSensitivityChange = (value: 'low' | 'medium' | 'high') => {
+    onSettingsChange({
+      ...settings,
+      sensitivity: value
+    });
+  };
+
   return (
-    <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center bg-slate-900/20 backdrop-blur-[2px] animate-in fade-in duration-200">
-      <div className="bg-white w-full max-w-xs mx-4 mb-4 sm:mb-0 rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-10 duration-300 border border-slate-100">
-        
-        {/* Header */}
-        <div className="px-5 py-3 border-b border-slate-100 flex justify-between items-center bg-slate-50/80">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
+        <div className="flex items-center justify-between p-4 border-b border-slate-200/50">
           <div className="flex items-center gap-2">
             <Server className="w-4 h-4 text-slate-500" />
-            <h2 className="text-sm font-bold text-slate-700">系統?�??/h2>
+            <h2 className="text-sm font-bold text-slate-700">系統設定</h2>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="p-1.5 rounded-full hover:bg-slate-200 text-slate-400 transition-colors"
           >
@@ -34,84 +52,116 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
           </button>
         </div>
 
-        <div className="p-5 space-y-6">
-          
-          {/* ESP32 Connection Status */}
-          <div>
-            <div className="flex justify-between items-center mb-3">
-               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                ESP32-S3 ????�??              </h3>
-              {esp32Connected ? (
-                <span className="text-[10px] bg-green-100 text-green-600 px-2 py-0.5 rounded font-mono font-bold flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-                  ???�?                </span>
-              ) : (
-                <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded font-mono font-bold flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
-                  ?��?
-                </span>
-              )}
-            </div>
-            
-            <div className={`rounded-xl p-4 border ${esp32Connected ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${esp32Connected ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-                  {esp32Connected ? <Wifi className="w-5 h-5" /> : <WifiOff className="w-5 h-5" />}
-                </div>
-                <div className="flex-1">
-                  <p className={`font-bold text-sm ${esp32Connected ? 'text-green-700' : 'text-red-700'}`}>
-                    {esp32Connected ? '已�?�� ESP32-S3' : 'ESP32-S3 ?��?'}
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    {esp32Connected ? 'IP: 172.20.10.9:8080' : '請檢?�設?�電源�?網路'}
-                  </p>
-                </div>
-                {esp32Connected ? (
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                ) : (
-                  <AlertCircle className="w-5 h-5 text-red-500" />
-                )}
+        <div className="p-4 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                <Volume2 className="w-4 h-4 text-blue-600" />
               </div>
-              
-              {connectionError && !esp32Connected && (
-                <div className="mt-3 p-2 bg-red-100 rounded-lg">
-                  <p className="text-xs text-red-600 font-mono break-all">{connectionError}</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Data Source Info */}
-          <div>
-            <div className="flex justify-between items-center mb-3">
-               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                ?��?來�?
-              </h3>
-              <span className="text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded font-mono font-bold">
-                實�??��?
-              </span>
-            </div>
-            
-            <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-100 text-blue-600">
-                  <Server className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="font-bold text-blue-700 text-sm">ESP32 ?�實?�測??/p>
-                  <p className="text-xs text-slate-500">CSI WiFi ?��??�測（無模擬?��?�?/p>
-                </div>
+              <div>
+                <p className="font-medium text-sm text-slate-800">聲音警報</p>
+                <p className="text-xs text-slate-500">跌倒時播放警報聲</p>
               </div>
             </div>
+            <button
+              onClick={() => handleToggle('soundEnabled')}
+              className={`w-11 h-6 rounded-full transition-colors relative ${
+                settings.soundEnabled ? 'bg-indigo-600' : 'bg-slate-300'
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                  settings.soundEnabled ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
           </div>
 
-        </div>
-        
-        <div className="px-5 py-3 bg-slate-50 text-center border-t border-slate-100">
-            <p className="text-[10px] text-slate-400 font-mono">Wi-Care System v2.0.0</p>
-            <p className="text-[10px] text-slate-300 font-mono mt-0.5">ESP32-S3 | 實盤模�? | ?��??��?</p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
+                <Vibrate className="w-4 h-4 text-purple-600" />
+              </div>
+              <div>
+                <p className="font-medium text-sm text-slate-800">震動提醒</p>
+                <p className="text-xs text-slate-500">跌倒時震動手機</p>
+              </div>
+            </div>
+            <button
+              onClick={() => handleToggle('vibrationEnabled')}
+              className={`w-11 h-6 rounded-full transition-colors relative ${
+                settings.vibrationEnabled ? 'bg-indigo-600' : 'bg-slate-300'
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                  settings.vibrationEnabled ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center">
+                <Bell className="w-4 h-4 text-green-600" />
+              </div>
+              <div>
+                <p className="font-medium text-sm text-slate-800">推播通知</p>
+                <p className="text-xs text-slate-500">發送推播通知</p>
+              </div>
+            </div>
+            <button
+              onClick={() => handleToggle('notificationsEnabled')}
+              className={`w-11 h-6 rounded-full transition-colors relative ${
+                settings.notificationsEnabled ? 'bg-indigo-600' : 'bg-slate-300'
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                  settings.notificationsEnabled ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+
+          <div className="pt-2 border-t border-slate-100">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+                <Wifi className="w-4 h-4 text-amber-600" />
+              </div>
+              <div>
+                <p className="font-medium text-sm text-slate-800">偵測靈敏度</p>
+                <p className="text-xs text-slate-500">調整跌倒偵測的敏感程度</p>
+              </div>
+            </div>
+            
+            <div className="flex gap-2 ml-11">
+              {(['low', 'medium', 'high'] as const).map((level) => (
+                <button
+                  key={level}
+                  onClick={() => handleSensitivityChange(level)}
+                  className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors ${
+                    settings.sensitivity === level
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  {level === 'low' ? '低' : level === 'medium' ? '中' : '高'}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
+        <div className="p-4 border-t border-slate-100">
+          <button
+            onClick={onClose}
+            className="w-full py-2.5 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-colors"
+          >
+            儲存設定
+          </button>
+        </div>
       </div>
     </div>
   );

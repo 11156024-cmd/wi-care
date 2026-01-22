@@ -1,163 +1,249 @@
-import React, { useState, useEffect } from 'react';
-import { AreaChart, Area, ResponsiveContainer, YAxis, Tooltip, CartesianGrid } from 'recharts';
-import { Activity, Wifi, Zap, Radio } from 'lucide-react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { Activity, Zap, Pause, Play, Settings } from 'lucide-react';
 
 interface WaveformMonitorProps {
-  isOffline: boolean;
+  isOffline?: boolean;
 }
 
-const DATA_POINTS = 50;
+const WaveformMonitor: React.FC<WaveformMonitorProps> = ({
+  isOffline = false
+}) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [data, setData] = useState<number[]>([]);
+  const [isMonitoring, setIsMonitoring] = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
+  const [sensitivity, setSensitivity] = useState(1);
+  const [displayMode, setDisplayMode] = useState<'line' | 'bar'>('line');
+  const title = 'CSI 波形監測';
 
-const WaveformMonitor: React.FC<WaveformMonitorProps> = ({ isOffline }) => {
-  const [data, setData] = useState<{ index: number; value: number }[]>(
-    Array.from({ length: DATA_POINTS }, (_, i) => ({ index: i, value: 50 }))
-  );
-  const [rssi, setRssi] = useState(-45);
-  const [activityLevel, setActivityLevel] = useState(0); // 0-100
-  const [isReceiving, setIsReceiving] = useState(false);
+  // 模擬 CSI 數據生成
+  useEffect(() => {
+    if (!isMonitoring || isOffline) return;
+
+    const interval = setInterval(() => {
+      setData(prev => {
+        const newValue = Math.sin(Date.now() / 200) * 50 + Math.random() * 30 - 15;
+        const newData = [...prev, newValue];
+        // 保留最近 100 個數據點
+        if (newData.length > 100) {
+          return newData.slice(-100);
+        }
+        return newData;
+      });
+    }, 50);
+
+    return () => clearInterval(interval);
+  }, [isMonitoring, isOffline]);
+
+  const onToggleMonitoring = useCallback(() => {
+    setIsMonitoring(prev => !prev);
+  }, []);
 
   useEffect(() => {
-    if (isOffline) {
-      setData(Array.from({ length: DATA_POINTS }, (_, i) => ({ index: i, value: 0 })));
-      setRssi(-90);
-      setActivityLevel(0);
-      setIsReceiving(false);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+
+    // 背景
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, rect.width, rect.height);
+
+    // 網格線
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 0.5;
+    
+    for (let i = 0; i < rect.height; i += 20) {
+      ctx.beginPath();
+      ctx.moveTo(0, i);
+      ctx.lineTo(rect.width, i);
+      ctx.stroke();
+    }
+    
+    for (let i = 0; i < rect.width; i += 20) {
+      ctx.beginPath();
+      ctx.moveTo(i, 0);
+      ctx.lineTo(i, rect.height);
+      ctx.stroke();
+    }
+
+    if (data.length === 0) {
+      // 無數據時顯示提示
+      ctx.fillStyle = '#64748b';
+      ctx.font = '14px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(isOffline ? '設備離線' : '等待數據...', rect.width / 2, rect.height / 2);
       return;
     }
 
-    setIsReceiving(true);
+    const centerY = rect.height / 2;
+    const xStep = rect.width / (data.length - 1 || 1);
+    const yScale = (rect.height / 2 - 20) * sensitivity / 100;
 
-    const interval = setInterval(() => {
-      // Simulate activity
-      const activityTrend = Math.sin(Date.now() / 4000) * 0.5 + 0.5; // Slower wave
-      const currentActivity = activityTrend * 80 + (Math.random() * 20);
-      
-      setActivityLevel(Math.floor(currentActivity));
+    if (displayMode === 'line') {
+      // 繪製波形
+      ctx.beginPath();
+      ctx.strokeStyle = '#3b82f6';
+      ctx.lineWidth = 2;
+      ctx.shadowColor = '#3b82f6';
+      ctx.shadowBlur = 6;
 
-      setData(currentData => {
-        const amplitude = 5 + (currentActivity / 100) * 45; 
-        const time = Date.now() / 200;
-        const base = Math.sin(time) * amplitude + 50;
-        const noise = (Math.random() - 0.5) * (amplitude / 3);
-        let newValue = base + noise;
-        
-        // Clamp
-        newValue = Math.max(5, Math.min(95, newValue));
-
-        const newData = [...currentData.slice(1), { index: currentData[currentData.length - 1].index + 1, value: newValue }];
-        return newData;
+      data.forEach((value, index) => {
+        const x = index * xStep;
+        const y = centerY - value * yScale;
+        if (index === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
       });
-
-      // Fluctuate RSSI
-      setRssi(prev => {
-        const drift = Math.random() > 0.5 ? 1 : -1;
-        let next = prev + drift;
-        if (next > -35) next = -35;
-        if (next < -65) next = -65;
-        return next;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    } else {
+      // 柱狀圖模式
+      const barWidth = Math.max(2, xStep - 1);
+      data.forEach((value, index) => {
+        const x = index * xStep;
+        const barHeight = Math.abs(value) * yScale;
+        const y = value >= 0 ? centerY - barHeight : centerY;
+        ctx.fillStyle = value >= 0 ? '#3b82f6' : '#ec4899';
+        ctx.fillRect(x, y, barWidth, barHeight);
       });
+    }
 
-    }, 60);
+    // 中心線
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(0, centerY);
+    ctx.lineTo(rect.width, centerY);
+    ctx.stroke();
+    ctx.setLineDash([]);
 
-    return () => clearInterval(interval);
-  }, [isOffline]);
+  }, [data, sensitivity, displayMode, isOffline]);
 
-  const isMoving = activityLevel > 20;
+  const currentValue = data.length > 0 ? data[data.length - 1] : 0;
+  const avgValue = data.length > 0 ? data.reduce((a, b) => a + b, 0) / data.length : 0;
+  const maxValue = data.length > 0 ? Math.max(...data.map(Math.abs)) : 0;
 
   return (
-    <div className="bg-white rounded-[1.5rem] sm:rounded-[2rem] p-5 sm:p-6 shadow-sm border border-slate-100 w-full h-full flex flex-col relative overflow-hidden group">
-      
-      {/* Background decoration */}
-      <div className={`absolute -top-20 -right-20 w-48 h-48 sm:w-64 sm:h-64 bg-blue-50/50 rounded-full blur-3xl transition-opacity duration-1000 ${isMoving ? 'opacity-100' : 'opacity-30'}`} />
-
-      {/* Header Section */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 z-10 gap-3">
-        
-        {/* Title & Status */}
-        <div>
-           <div className="flex items-center gap-2 mb-1">
-             <div className={`w-2 h-2 rounded-full ${isOffline ? 'bg-slate-300' : 'bg-green-500 animate-pulse'}`}></div>
-             <h3 className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">CSI Signal Monitor</h3>
-           </div>
-           
-           <div className={`text-base sm:text-lg font-bold flex items-center gap-2 transition-colors duration-300 ${isOffline ? 'text-slate-400' : 'text-slate-800'}`}>
-              {isOffline ? (
-                  <>
-                    <Radio className="w-4 h-4 sm:w-5 sm:h-5" />
-                    <span>訊�?中斷</span>
-                  </>
-              ) : isMoving ? (
-                  <>
-                    <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
-                    <span>?�測?�活??/span>
-                  </>
+    <div className="tech-card card-hover rounded-2xl overflow-hidden h-full relative">
+      <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-100">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="icon-container icon-container-primary">
+            <Activity className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-slate-800 font-bold text-base sm:text-lg">{title}</h3>
+            <span className={`text-xs flex items-center gap-1.5 mt-0.5 ${
+              isMonitoring && !isOffline
+                ? 'text-emerald-600' 
+                : 'text-slate-400'
+            }`}>
+              {isMonitoring && !isOffline ? (
+                <>
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                  <span className="font-medium">運行中</span>
+                </>
               ) : (
-                  <>
-                    <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" />
-                    <span>?�止�?/span>
-                  </>
+                <>
+                  <Zap className="w-3 h-3" />
+                  <span>{isOffline ? '離線' : '已暫停'}</span>
+                </>
               )}
-           </div>
+            </span>
+          </div>
         </div>
-
-        {/* Metrics Pill */}
-        <div className="w-full sm:w-auto flex items-center justify-between sm:justify-end gap-4 bg-slate-50 rounded-2xl p-2 pr-4 border border-slate-100">
-             {/* Activity Metric */}
-             <div className="flex flex-col items-center px-2 border-r border-slate-200">
-                <span className="text-[10px] text-slate-400 font-bold uppercase">Activity</span>
-                <span className={`text-sm font-mono font-bold ${activityLevel > 50 ? 'text-blue-600' : 'text-slate-600'}`}>
-                    {isOffline ? '--' : activityLevel}%
-                </span>
-             </div>
-
-             {/* RSSI Metric */}
-             <div className="flex flex-col items-end">
-                <div className="flex items-center gap-1.5 text-slate-600">
-                    <Wifi className="w-3.5 h-3.5" />
-                    <span className="text-sm font-mono font-bold">{isOffline ? '--' : rssi} dBm</span>
-                </div>
-             </div>
+        
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onToggleMonitoring}
+            disabled={isOffline}
+            className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-600 transition-all disabled:opacity-30 active:scale-95"
+          >
+            {isMonitoring ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+          </button>
+          <button
+            onClick={() => setShowSettings(!showSettings)}
+            className={`p-2.5 rounded-lg transition-all active:scale-95 border ${showSettings ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-600'}`}
+          >
+            <Settings className="w-4 h-4" />
+          </button>
         </div>
       </div>
-      
-      {/* Chart Area - Increased bottom padding (pb-4) and adjusted margins */}
-      <div className="flex-1 w-full min-h-[160px] sm:min-h-[180px] relative z-0 pb-4">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
-            <defs>
-              <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-            {/* Extended domain to [-20, 120] to make the wave float more centrally */}
-            <YAxis domain={[-20, 120]} hide />
-            <Tooltip 
-                content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                    return (
-                        <div className="bg-slate-800 text-white text-xs font-mono py-1 px-2 rounded shadow-lg">
-                        {payload[0].value?.toFixed(1)}
-                        </div>
-                    );
-                    }
-                    return null;
-                }}
+
+      {showSettings && (
+        <div className="p-4 bg-slate-50 border-b border-slate-100 space-y-4">
+          <div>
+            <label className="text-slate-600 text-xs font-medium block mb-2">靈敏度</label>
+            <input
+              type="range"
+              min="0.5"
+              max="2"
+              step="0.1"
+              value={sensitivity}
+              onChange={(e) => setSensitivity(parseFloat(e.target.value))}
+              className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-500"
             />
-            <Area 
-                type="monotone" 
-                dataKey="value" 
-                stroke={isOffline ? "#cbd5e1" : "#3b82f6"} 
-                strokeWidth={3}
-                fillOpacity={1} 
-                fill="url(#colorValue)" 
-                isAnimationActive={false}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+          </div>
+          <div>
+            <label className="text-slate-600 text-xs font-medium block mb-2">顯示模式</label>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setDisplayMode('line')}
+                className={`px-4 py-2 rounded-lg text-xs font-medium transition-all border ${displayMode === 'line' ? 'bg-blue-500 border-blue-500 text-white' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-300'}`}
+              >
+                波形圖
+              </button>
+              <button
+                onClick={() => setDisplayMode('bar')}
+                className={`px-4 py-2 rounded-lg text-xs font-medium transition-all border ${displayMode === 'bar' ? 'bg-blue-500 border-blue-500 text-white' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-300'}`}
+              >
+                頻譜圖
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="relative bg-white" style={{ height: '150px' }}>
+        <canvas
+          ref={canvasRef}
+          className="w-full h-full"
+        />
+        {/* Edge gradients */}
+        <div className="absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-white to-transparent pointer-events-none"></div>
+        <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none"></div>
       </div>
 
+      <div className="flex justify-between p-4 border-t border-slate-100 text-xs">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+          <span className="text-slate-400">當前:</span>
+          <span className="text-slate-700 font-semibold">{currentValue.toFixed(1)}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+          <span className="text-slate-400">平均:</span>
+          <span className="text-slate-700 font-semibold">{avgValue.toFixed(1)}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+          <span className="text-slate-400">最大:</span>
+          <span className="text-slate-700 font-semibold">{maxValue.toFixed(1)}</span>
+        </div>
+      </div>
     </div>
   );
 };

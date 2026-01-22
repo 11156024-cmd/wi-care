@@ -33,7 +33,6 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ isOpen, onClose, 
       ...prev,
       [name]: value
     }));
-    // Clear error for this field when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -46,17 +45,17 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ isOpen, onClose, 
     const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = '請輸?��???;
+      newErrors.name = '請輸入姓名';
     }
     if (!formData.email.trim()) {
-      newErrors.email = '請輸?�電子郵�?;
+      newErrors.email = '請輸入電子郵件';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = '請輸?��??��??��??�件';
+      newErrors.email = '請輸入有效的電子郵件';
     }
     if (!formData.phone.trim()) {
-      newErrors.phone = '請輸?�電話�?�?;
+      newErrors.phone = '請輸入電話號碼';
     } else if (!/^\d{10,}$/.test(formData.phone.replace(/\D/g, ''))) {
-      newErrors.phone = '請輸?��??��??�話?�碼';
+      newErrors.phone = '請輸入有效的電話號碼';
     }
 
     setErrors(newErrors);
@@ -67,14 +66,14 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ isOpen, onClose, 
     const newErrors: Record<string, string> = {};
 
     if (!formData.password) {
-      newErrors.password = '請輸?��?�?;
+      newErrors.password = '請輸入密碼';
     } else if (formData.password.length < 8) {
-      newErrors.password = '密碼?��??��?8 ?��?�?;
+      newErrors.password = '密碼至少需要 8 個字元';
     }
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = '請確認�?�?;
+      newErrors.confirmPassword = '請確認密碼';
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = '密碼不匹??;
+      newErrors.confirmPassword = '密碼不匹配';
     }
 
     setErrors(newErrors);
@@ -85,13 +84,13 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ isOpen, onClose, 
     const newErrors: Record<string, string> = {};
 
     if (!formData.dateOfBirth) {
-      newErrors.dateOfBirth = '請輸?�出?�日??;
+      newErrors.dateOfBirth = '請輸入出生日期';
     }
     if (!formData.emergencyContact.trim()) {
-      newErrors.emergencyContact = '請輸?��??�聯絡人';
+      newErrors.emergencyContact = '請輸入緊急聯絡人';
     }
     if (!formData.address.trim()) {
-      newErrors.address = '請輸?��??�';
+      newErrors.address = '請輸入地址';
     }
 
     setErrors(newErrors);
@@ -117,14 +116,11 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ isOpen, onClose, 
     e.preventDefault();
     
     if (validateStep3()) {
-      // Remove confirmPassword before sending
       const { confirmPassword, ...submitData } = formData;
       console.log('Submitting registration:', submitData);
       
-      // Call the onRegister callback
       onRegister(formData);
       
-      // Show success message
       setSuccess(true);
       setTimeout(() => {
         setSuccess(false);
@@ -134,7 +130,6 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ isOpen, onClose, 
   };
 
   const handleClose = () => {
-    // Reset form
     setStep(1);
     setFormData({
       name: '',
@@ -157,11 +152,10 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ isOpen, onClose, 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-        {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-slate-200/50 sticky top-0 bg-white z-10">
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900">建�?帳�?</h2>
-            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">步�? {step} / 3</p>
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900">建立帳戶</h2>
+            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">步驟 {step} / 3</p>
           </div>
           <button
             onClick={handleClose}
@@ -171,28 +165,26 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ isOpen, onClose, 
           </button>
         </div>
 
-        {/* Success Message */}
         {success && (
           <div className="m-6 p-4 bg-green-50 border border-green-200 rounded-xl flex items-center gap-3">
             <CheckCircle className="w-5 h-5 text-green-600 shrink-0" />
-            <span className="text-sm font-medium text-green-700">註�??��?�?/span>
+            <span className="text-sm font-medium text-green-700">註冊成功！</span>
           </div>
         )}
 
-        {/* Form Content */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {step === 1 && (
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  姓�? <span className="text-red-500">*</span>
+                  姓名 <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  placeholder="請輸?�您?��???
+                  placeholder="請輸入您的姓名"
                   className={`w-full px-4 py-2.5 rounded-lg border transition-colors focus:outline-none focus:ring-2 ${
                     errors.name
                       ? 'border-red-200 focus:ring-red-300 bg-red-50'
@@ -209,7 +201,7 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ isOpen, onClose, 
 
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  ?��??�件 <span className="text-red-500">*</span>
+                  電子郵件 <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="email"
@@ -233,14 +225,14 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ isOpen, onClose, 
 
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  ?�話?�碼 <span className="text-red-500">*</span>
+                  電話號碼 <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="tel"
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
-                  placeholder="123-456-7890"
+                  placeholder="0912-345-678"
                   className={`w-full px-4 py-2.5 rounded-lg border transition-colors focus:outline-none focus:ring-2 ${
                     errors.phone
                       ? 'border-red-200 focus:ring-red-300 bg-red-50'
@@ -265,8 +257,8 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ isOpen, onClose, 
                   onChange={handleInputChange}
                   className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-300 focus:outline-none bg-white"
                 >
-                  <option value="elderly">?��?/option>
-                  <option value="caregiver">?�顧??/option>
+                  <option value="elderly">長輩</option>
+                  <option value="caregiver">照顧者</option>
                 </select>
               </div>
             </div>
@@ -284,7 +276,7 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ isOpen, onClose, 
                     name="password"
                     value={formData.password}
                     onChange={handleInputChange}
-                    placeholder="?��? 8 ?��?�?
+                    placeholder="至少 8 個字元"
                     className={`w-full px-4 py-2.5 rounded-lg border transition-colors focus:outline-none focus:ring-2 pr-10 ${
                       errors.password
                         ? 'border-red-200 focus:ring-red-300 bg-red-50'
@@ -309,7 +301,7 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ isOpen, onClose, 
 
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  確�?密碼 <span className="text-red-500">*</span>
+                  確認密碼 <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <input
@@ -317,7 +309,7 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ isOpen, onClose, 
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
-                    placeholder="?�次輸入密碼"
+                    placeholder="再次輸入密碼"
                     className={`w-full px-4 py-2.5 rounded-lg border transition-colors focus:outline-none focus:ring-2 pr-10 ${
                       errors.confirmPassword
                         ? 'border-red-200 focus:ring-red-300 bg-red-50'
@@ -342,11 +334,11 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ isOpen, onClose, 
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
                 <p className="text-sm text-blue-800">
-                  <span className="font-semibold">密碼要�?�?/span>
+                  <span className="font-semibold">密碼要求</span>
                   <br />
-                  ???��? 8 ?��?�?
+                  • 至少 8 個字元
                   <br />
-                  ???�含大�?寫�?母�??��?
+                  • 建議包含大小寫字母和數字
                 </p>
               </div>
             </div>
@@ -356,7 +348,7 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ isOpen, onClose, 
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  ?��??��? <span className="text-red-500">*</span>
+                  出生日期 <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="date"
@@ -386,7 +378,7 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ isOpen, onClose, 
                   name="emergencyContact"
                   value={formData.emergencyContact}
                   onChange={handleInputChange}
-                  placeholder="例�?：張�?(123-456-7890)"
+                  placeholder="例如：張三 (0912-345-678)"
                   className={`w-full px-4 py-2.5 rounded-lg border transition-colors focus:outline-none focus:ring-2 ${
                     errors.emergencyContact
                       ? 'border-red-200 focus:ring-red-300 bg-red-50'
@@ -403,14 +395,14 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ isOpen, onClose, 
 
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  住�? <span className="text-red-500">*</span>
+                  住址 <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   name="address"
                   value={formData.address}
                   onChange={handleInputChange}
-                  placeholder="請輸?�您?��??�"
+                  placeholder="請輸入您的住址"
                   className={`w-full px-4 py-2.5 rounded-lg border transition-colors focus:outline-none focus:ring-2 ${
                     errors.address
                       ? 'border-red-200 focus:ring-red-300 bg-red-50'
@@ -427,7 +419,6 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ isOpen, onClose, 
             </div>
           )}
 
-          {/* Progress Bar */}
           <div className="mt-6 flex gap-2">
             {[1, 2, 3].map(stepNum => (
               <div
@@ -439,7 +430,6 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ isOpen, onClose, 
             ))}
           </div>
 
-          {/* Buttons */}
           <div className="flex gap-3 mt-8">
             {step > 1 && (
               <button
@@ -447,7 +437,7 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ isOpen, onClose, 
                 onClick={handlePrev}
                 className="flex-1 px-4 py-2.5 rounded-lg border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 transition-colors"
               >
-                返�?
+                返回
               </button>
             )}
             {step < 3 ? (
@@ -456,14 +446,14 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ isOpen, onClose, 
                 onClick={handleNext}
                 className="flex-1 px-4 py-2.5 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-colors"
               >
-                下�?�?
+                下一步
               </button>
             ) : (
               <button
                 type="submit"
                 className="flex-1 px-4 py-2.5 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition-colors"
               >
-                完�?註�?
+                完成註冊
               </button>
             )}
           </div>
@@ -474,4 +464,3 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ isOpen, onClose, 
 };
 
 export default RegistrationModal;
-

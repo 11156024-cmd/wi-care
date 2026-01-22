@@ -1,211 +1,149 @@
 import React from 'react';
-import { 
-  ArrowLeft, 
-  Camera, 
-  User, 
-  AlertTriangle, 
-  Activity, 
-  Stethoscope,
-  FileHeart
-} from 'lucide-react';
-import { useElderlyViewModel, PREDEFINED_CONDITIONS } from '../hooks/useElderlyViewModel';
+import { ArrowLeft, FileHeart, Heart, Activity, Pill, AlertTriangle, X } from 'lucide-react';
 
 interface ElderlyHealthPassportProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+// 預設的使用者健康資料
+const defaultUserData = {
+  name: '王奶奶',
+  bloodType: 'A+',
+  allergies: ['盤尼西林', '海鮮'],
+  medications: ['降血壓藥 (早晚各一次)', '血糖控制藥 (飯前)', '維他命D'],
+  conditions: ['高血壓', '第二型糖尿病', '輕度骨質疏鬆'],
+  emergencyContact: {
+    name: '王先生',
+    phone: '0923-456-789',
+    relationship: '兒子'
+  }
+};
+
 const ElderlyHealthPassport: React.FC<ElderlyHealthPassportProps> = ({ isOpen, onClose }) => {
-  const {
-    profile,
-    updateField,
-    toggleCondition,
-    showHighRiskBanner,
-    handleAvatarUpload,
-    savePassport,
-    isValid
-  } = useElderlyViewModel(onClose);
+  const userData = defaultUserData;
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[110] bg-slate-50 flex flex-col animate-in slide-in-from-right duration-300 font-sans">
-      
-      {/* Header */}
-      <div className="bg-white px-4 py-3 shadow-sm border-b border-slate-100 flex items-center justify-between sticky top-0 z-20">
-        <button 
-          onClick={onClose}
-          className="p-2 -ml-2 text-slate-600 hover:bg-slate-50 rounded-full transition-colors"
-        >
-          <ArrowLeft className="w-6 h-6" />
-        </button>
-        <div className="flex items-center gap-2">
-            <FileHeart className="w-5 h-5 text-rose-500" />
-            <h1 className="font-bold text-lg text-slate-800">?�輩?�康資�???/h1>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl">
+        {/* Header */}
+        <div className="sticky top-0 bg-white border-b border-slate-200 rounded-t-2xl">
+          <div className="flex items-center justify-between px-4 py-3">
+            <button 
+              onClick={onClose}
+              className="p-2 -ml-2 hover:bg-slate-100 rounded-full transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5 text-slate-600" />
+            </button>
+            <div className="flex items-center gap-2">
+              <FileHeart className="w-5 h-5 text-rose-500" />
+              <h1 className="font-bold text-lg text-slate-800">健康護照</h1>
+            </div>
+            <button 
+              onClick={onClose}
+              className="p-2 -mr-2 hover:bg-slate-100 rounded-full transition-colors"
+            >
+              <X className="w-5 h-5 text-slate-600" />
+            </button>
+          </div>
         </div>
-        <div className="w-10" /> 
-      </div>
 
-      {/* Warning Banner - Absolute positioned or Sticky under header */}
-      {showHighRiskBanner && (
-          <div className="bg-amber-50 border-b border-amber-100 px-6 py-3 flex items-start gap-3 animate-in slide-in-from-top-2 duration-500">
-              <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
-              <div>
-                  <p className="text-sm font-bold text-amber-700">高風?�警�?/p>
-                  <p className="text-xs text-amber-600 mt-0.5 leading-relaxed">
-                      此長輩屬?��??��?風險群。系統建議您?��??��??��?度偵測」模式以確�?安全??                  </p>
+        <div className="p-4 space-y-4">
+          {/* Profile Header */}
+          <div className="bg-gradient-to-br from-rose-50 to-pink-50 rounded-2xl p-6 border border-rose-100">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-rose-400 to-pink-500 rounded-full flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                {userData.name.charAt(0)}
               </div>
-          </div>
-      )}
-
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="max-w-md mx-auto space-y-6">
-
-          {/* 1. Top Info Card (Medical ID Style) */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden relative">
-            {/* Decorative Top Border */}
-            <div className="h-2 w-full bg-gradient-to-r from-rose-400 to-rose-600" />
-            
-            <div className="p-6">
-                <div className="flex flex-col items-center sm:flex-row sm:items-start gap-6">
-                    {/* Avatar */}
-                    <div className="relative group shrink-0">
-                        <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-slate-50 shadow-inner bg-slate-100 flex items-center justify-center">
-                            {profile.avatarUrl ? (
-                            <img src={profile.avatarUrl} alt="Elderly Avatar" className="w-full h-full object-cover" />
-                            ) : (
-                            <User className="w-10 h-10 text-slate-300" />
-                            )}
-                        </div>
-                        <label className="absolute bottom-0 right-0 bg-rose-500 text-white p-2 rounded-full shadow-md cursor-pointer hover:bg-rose-600 transition-colors">
-                            <Camera className="w-4 h-4" />
-                            <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
-                        </label>
-                    </div>
-
-                    {/* Basic Fields */}
-                    <div className="flex-1 w-full space-y-4">
-                        <div>
-                            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                                稱呼 (Nickname)
-                            </label>
-                            <input 
-                                type="text"
-                                value={profile.nickname}
-                                onChange={(e) => updateField('nickname', e.target.value)}
-                                placeholder="例�?：爺??
-                                className="w-full text-xl font-bold text-slate-800 border-b border-slate-200 focus:border-rose-500 focus:outline-none py-1 placeholder:font-normal placeholder:text-slate-300 bg-transparent transition-colors"
-                            />
-                        </div>
-
-                        <div className="flex gap-4">
-                            <div className="flex-1">
-                                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                                    年齡
-                                </label>
-                                <input 
-                                    type="number"
-                                    value={profile.age}
-                                    onChange={(e) => updateField('age', e.target.value)}
-                                    placeholder="80"
-                                    className="w-full font-mono text-slate-700 border-b border-slate-200 focus:border-rose-500 focus:outline-none py-1 bg-transparent"
-                                />
-                            </div>
-                            <div className="flex-1">
-                                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                                    ?�別
-                                </label>
-                                <div className="flex gap-2 mt-1">
-                                    {(['male', 'female'] as const).map((g) => (
-                                        <button
-                                            key={g}
-                                            onClick={() => updateField('gender', g)}
-                                            className={`px-3 py-1 rounded text-xs font-medium transition-all ${
-                                                profile.gender === g 
-                                                ? 'bg-slate-800 text-white' 
-                                                : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
-                                            }`}
-                                        >
-                                            {g === 'male' ? '?? : '�?}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+              <div>
+                <h2 className="text-xl font-bold text-slate-800">{userData.name}</h2>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="px-2 py-0.5 bg-red-100 text-red-600 rounded text-xs font-medium">
+                    血型：{userData.bloodType}
+                  </span>
                 </div>
+              </div>
             </div>
           </div>
 
-          {/* 2. Medical Tags Section */}
-          <div>
-            <div className="flex items-center gap-2 mb-3 px-1">
-                <Stethoscope className="w-4 h-4 text-slate-400" />
-                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    ?�史?�風?��?�?(Medical Conditions)
-                </h3>
+          {/* Allergies */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+            <div className="flex items-center gap-2 mb-3">
+              <AlertTriangle className="w-4 h-4 text-amber-500" />
+              <h3 className="font-semibold text-slate-800">過敏史</h3>
             </div>
-            
-            <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-                <p className="text-xs text-slate-400 mb-4">
-                    請�??�長輩現?��??�康?�況�?系統將�?此調??AI ?�測權�???                </p>
-
-                {/* FlowLayout using Flex wrap */}
-                <div className="flex flex-wrap gap-2.5">
-                    {PREDEFINED_CONDITIONS.map((condition) => {
-                        const isSelected = profile.conditions.includes(condition.id);
-                        return (
-                            <button
-                                key={condition.id}
-                                onClick={() => toggleCondition(condition.id)}
-                                className={`
-                                    px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-200 active:scale-95
-                                    ${isSelected 
-                                        ? 'bg-rose-50 border-rose-200 text-rose-600 shadow-sm' 
-                                        : 'bg-slate-50 border-slate-100 text-slate-500 hover:bg-slate-100'
-                                    }
-                                `}
-                            >
-                                {condition.label}
-                            </button>
-                        );
-                    })}
-                </div>
-            </div>
-          </div>
-
-          {/* 3. System Feedback Preview */}
-          <div className="bg-slate-100/50 rounded-xl p-4 border border-slate-200/50">
-             <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-slate-400 uppercase">?��?風險評估</span>
-                <span className={`text-xs font-bold px-2 py-1 rounded ${showHighRiskBanner ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
-                    {showHighRiskBanner ? 'High Risk' : 'Normal'}
+            <div className="flex flex-wrap gap-2">
+              {userData.allergies.map((allergy, index) => (
+                <span
+                  key={index}
+                  className="px-3 py-1 bg-amber-50 text-amber-700 rounded-full text-sm font-medium border border-amber-200"
+                >
+                  ⚠️ {allergy}
                 </span>
-             </div>
-             <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
-                <div 
-                    className={`h-full transition-all duration-500 ${showHighRiskBanner ? 'bg-red-500 w-3/4' : 'bg-green-500 w-1/4'}`} 
-                />
-             </div>
-             <p className="text-[10px] text-slate-400 mt-2 text-right">
-                AI Sensitivity Level: {showHighRiskBanner ? '0.85 (High)' : '0.5 (Standard)'}
-             </p>
+              ))}
+            </div>
           </div>
 
-          <div className="h-4" /> {/* Spacer */}
+          {/* Medications */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+            <div className="flex items-center gap-2 mb-3">
+              <Pill className="w-4 h-4 text-blue-500" />
+              <h3 className="font-semibold text-slate-800">目前用藥</h3>
+            </div>
+            <div className="space-y-2">
+              {userData.medications.map((med, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg"
+                >
+                  <div className="w-2 h-2 bg-blue-400 rounded-full" />
+                  <span className="text-sm text-slate-700">{med}</span>
+                </div>
+              ))}
+            </div>
+          </div>
 
-          <button
-            onClick={savePassport}
-            disabled={!isValid}
-            className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg transition-all transform active:scale-95 flex items-center justify-center gap-2 ${
-              isValid 
-                ? 'bg-slate-900 text-white shadow-slate-900/20' 
-                : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
-            }`}
-          >
-            <Activity className="w-5 h-5" />
-            ?�新?�康資�???          </button>
+          {/* Health Conditions */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+            <div className="flex items-center gap-2 mb-3">
+              <Heart className="w-4 h-4 text-rose-500" />
+              <h3 className="font-semibold text-slate-800">健康狀況</h3>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {userData.conditions.map((condition, index) => (
+                <span
+                  key={index}
+                  className="px-3 py-1 bg-rose-50 text-rose-600 rounded-full text-sm font-medium"
+                >
+                  {condition}
+                </span>
+              ))}
+            </div>
+          </div>
 
+          {/* Emergency Contact */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+            <div className="flex items-center gap-2 mb-3">
+              <Activity className="w-4 h-4 text-green-500" />
+              <h3 className="font-semibold text-slate-800">緊急聯絡人</h3>
+            </div>
+            <div className="bg-green-50 rounded-xl p-4 border border-green-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-slate-800">{userData.emergencyContact.name}</p>
+                  <p className="text-sm text-slate-500">{userData.emergencyContact.relationship}</p>
+                </div>
+                <a 
+                  href={`tel:${userData.emergencyContact.phone}`}
+                  className="px-4 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-colors"
+                >
+                  {userData.emergencyContact.phone}
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

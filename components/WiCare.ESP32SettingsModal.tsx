@@ -10,7 +10,6 @@ interface ESP32SettingsModalProps {
 }
 
 const ESP32SettingsModal: React.FC<ESP32SettingsModalProps> = ({ isOpen, onClose, onSettingsSaved }) => {
-  // å¾ç•¶?é?ç½®å?å§‹å?ï¼Œé?è¨­ä½¿?¨å¯¦?›ç? ESP32 IP
   const currentConfig = esp32Service.getConfig();
   const [host, setHost] = useState<string>(currentConfig.host || '172.20.10.9');
   const [port, setPort] = useState<number>(currentConfig.port || 8080);
@@ -25,27 +24,23 @@ const ESP32SettingsModal: React.FC<ESP32SettingsModalProps> = ({ isOpen, onClose
     setConnectionStatus('connecting');
 
     try {
-      // Update both services with the same config
       esp32Service.updateConfig({
         host,
         port,
         useWebSocket
       });
       
-      // ?Œæ­¥?´æ–° mockApi ??ESP32 ?ç½®ï¼ˆç”¨?¼ç??‹è¼ªè©¢ï?
       updateESP32Config(host, port);
 
-      // ?ˆæ¸¬è©?HTTP ??¥
       const healthOk = await checkESP32Health();
       if (!healthOk) {
-        throw new Error(`?¡æ???¥??ESP32 (${host}:${port})`);
+        throw new Error(`ç„¡æ³•é€£æ¥åˆ° ESP32 (${host}:${port})`);
       }
 
-      // Try to connect via WebSocket (optional)
       try {
         await esp32Service.connect();
       } catch (wsError) {
-        console.log('[ESP32] WebSocket ??¥å¤±æ?ï¼Œå?ä½¿ç”¨ HTTP æ¨¡å?');
+        console.log('[ESP32] WebSocket é€£æ¥å¤±æ•—ï¼Œå°‡ä½¿ç”¨ HTTP æ¨¡å¼');
       }
       
       setConnectionStatus('connected');
@@ -61,7 +56,7 @@ const ESP32SettingsModal: React.FC<ESP32SettingsModalProps> = ({ isOpen, onClose
       setErrorMessage(
         error instanceof Error 
           ? error.message 
-          : '?¡æ???¥??ESP32 è¨­å?'
+          : 'ç„¡æ³•é€£æ¥åˆ° ESP32 è¨­å‚™'
       );
       setTesting(false);
     }
@@ -72,15 +67,14 @@ const ESP32SettingsModal: React.FC<ESP32SettingsModalProps> = ({ isOpen, onClose
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-        {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-slate-200/50">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
               <Settings className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-900">ESP32 è¨­å?</h2>
-              <p className="text-xs text-slate-500 font-medium mt-1">?ç½®è¨­å???¥</p>
+              <h2 className="text-xl font-bold text-slate-900">ESP32 è¨­å®š</h2>
+              <p className="text-xs text-slate-500 font-medium mt-1">é…ç½®è¨­å‚™é€£æ¥</p>
             </div>
           </div>
           <button
@@ -92,9 +86,7 @@ const ESP32SettingsModal: React.FC<ESP32SettingsModalProps> = ({ isOpen, onClose
           </button>
         </div>
 
-        {/* Content */}
         <div className="p-6 space-y-4">
-          {/* Current Status */}
           <div className={`p-4 rounded-lg border-2 flex items-start gap-3 ${
             esp32Service.getConnectionStatus()
               ? 'bg-green-50 border-green-200'
@@ -107,7 +99,7 @@ const ESP32SettingsModal: React.FC<ESP32SettingsModalProps> = ({ isOpen, onClose
             }`} />
             <div>
               <p className="font-semibold text-sm">
-                {esp32Service.getConnectionStatus() ? 'å·²é€?¥' : '?ªé€?¥'}
+                {esp32Service.getConnectionStatus() ? 'å·²é€£æ¥' : 'æœªé€£æ¥'}
               </p>
               <p className="text-xs text-slate-600 mt-1">
                 {currentConfig.host}:{currentConfig.port}
@@ -115,28 +107,26 @@ const ESP32SettingsModal: React.FC<ESP32SettingsModalProps> = ({ isOpen, onClose
             </div>
           </div>
 
-          {/* Host Input */}
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2">
-              ESP32 IP ?°å? <span className="text-red-500">*</span>
+              ESP32 IP ä½å€ <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={host}
               onChange={(e) => setHost(e.target.value)}
-              placeholder="ä¾‹å?: 192.168.1.100"
+              placeholder="ä¾‹å¦‚: 192.168.1.100"
               disabled={testing}
               className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-300 focus:outline-none disabled:bg-slate-50 disabled:text-slate-500"
             />
             <p className="text-xs text-slate-500 mt-2">
-              ??¥??ESP32-S3 ?‹ç™¼?¿ç? IP ?°å?
+              è«‹è¼¸å…¥ ESP32-S3 é–‹ç™¼æ¿çš„ IP ä½å€
             </p>
           </div>
 
-          {/* Port Input */}
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2">
-              ??¥??<span className="text-red-500">*</span>
+              é€£æ¥åŸ  <span className="text-red-500">*</span>
             </label>
             <input
               type="number"
@@ -149,14 +139,13 @@ const ESP32SettingsModal: React.FC<ESP32SettingsModalProps> = ({ isOpen, onClose
               className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-300 focus:outline-none disabled:bg-slate-50 disabled:text-slate-500"
             />
             <p className="text-xs text-slate-500 mt-2">
-              WebSocket ??HTTP API ??¥??
+              WebSocket æˆ– HTTP API é€£æ¥åŸ 
             </p>
           </div>
 
-          {/* WebSocket Toggle */}
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-3">
-              ??¥?¹å?
+              é€£æ¥æ¨¡å¼
             </label>
             <div className="flex gap-3">
               <button
@@ -184,13 +173,12 @@ const ESP32SettingsModal: React.FC<ESP32SettingsModalProps> = ({ isOpen, onClose
             </div>
             <p className="text-xs text-slate-500 mt-2">
               {useWebSocket
-                ? 'WebSocketï¼šç”¨?¼å¯¦?‚é??‘é€šä¿¡'
-                : 'HTTP APIï¼šç”¨?¼ç°¡?®ç? REST èª¿ç”¨'
+                ? 'WebSocketï¼šç”¨æ–¼å¯¦æ™‚æ•¸æ“šé€šä¿¡'
+                : 'HTTP APIï¼šç”¨æ–¼ç°¡å–®çš„ REST èª¿ç”¨'
               }
             </p>
           </div>
 
-          {/* Error Message */}
           {errorMessage && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
@@ -198,44 +186,40 @@ const ESP32SettingsModal: React.FC<ESP32SettingsModalProps> = ({ isOpen, onClose
             </div>
           )}
 
-          {/* Success Message */}
           {connectionStatus === 'connected' && (
             <div className="p-3 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3">
               <CheckCircle className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
-              <p className="text-sm text-green-700">å·²æ??Ÿé€?¥??ESP32ï¼?/p>
+              <p className="text-sm text-green-700">å·²æˆåŠŸé€£æ¥åˆ° ESP32</p>
             </div>
           )}
 
-          {/* Loading Status */}
           {connectionStatus === 'connecting' && (
             <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-3">
               <div className="animate-spin">
                 <Wifi className="w-5 h-5 text-blue-600" />
               </div>
-              <p className="text-sm text-blue-700">æ­?œ¨??¥?°è¨­??..</p>
+              <p className="text-sm text-blue-700">æ­£åœ¨é€£æ¥è¨­å‚™...</p>
             </div>
           )}
 
-          {/* Instructions */}
           <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-            <h4 className="font-semibold text-sm text-slate-900 mb-2">è¨­ç½®æ­¥é?ï¼?/h4>
+            <h4 className="font-semibold text-sm text-slate-900 mb-2">è¨­ç½®æ­¥é©Ÿ</h4>
             <ol className="text-xs text-slate-700 space-y-1 list-decimal list-inside">
-              <li>ç¢ºä? ESP32-S3 ?‹ç™¼?¿å·²ä¸Šå‚³ç¶²é?ä¼ºæ??¨ä»£ç¢?/li>
-              <li>è¨˜é??‹ç™¼?¿ç? IP ?°å??Œé€?¥??/li>
-              <li>è¼¸å…¥ä¸Šè¿°?°å??Œé€?¥??/li>
-              <li>é»æ??Œæ¸¬è©¦ä¸¦ä¿å??é?è­‰é€?¥</li>
+              <li>ç¢ºä¿ ESP32-S3 é–‹ç™¼æ¿å·²ä¸Šå‚³ç¶²é ä¼ºæœå™¨ä»£ç¢¼</li>
+              <li>è¨˜éŒ„é–‹ç™¼æ¿çš„ IP ä½å€å’Œé€£æ¥åŸ </li>
+              <li>è¼¸å…¥ä¸Šè¿°ä½å€å’Œé€£æ¥åŸ </li>
+              <li>é»æ“Šã€Œæ¸¬è©¦ä¸¦ä¿å­˜ã€é©—è­‰é€£æ¥</li>
             </ol>
           </div>
         </div>
 
-        {/* Footer */}
         <div className="flex gap-3 p-6 border-t border-slate-200/50 bg-slate-50">
           <button
             onClick={onClose}
             disabled={testing}
             className="flex-1 px-4 py-2.5 rounded-lg border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 transition-colors disabled:opacity-50"
           >
-            ?–æ?
+            å–æ¶ˆ
           </button>
           <button
             onClick={handleSaveSettings}
@@ -247,10 +231,10 @@ const ESP32SettingsModal: React.FC<ESP32SettingsModalProps> = ({ isOpen, onClose
                 <div className="animate-spin">
                   <Wifi className="w-4 h-4" />
                 </div>
-                <span>æ¸¬è©¦ä¸?..</span>
+                <span>æ¸¬è©¦ä¸­...</span>
               </>
             ) : (
-              'æ¸¬è©¦ä¸¦ä?å­?
+              'æ¸¬è©¦ä¸¦ä¿å­˜'
             )}
           </button>
         </div>

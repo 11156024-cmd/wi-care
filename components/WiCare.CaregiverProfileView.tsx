@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { User, Camera, ArrowLeft, HelpCircle, Check, AlertCircle, Send, Bot } from 'lucide-react';
-import { useCaregiverViewModel } from '../hooks/useCaregiverViewModel';
+import { 
+  ArrowLeft, User, Phone, MapPin, Calendar, Heart, 
+  Clock, Shield, MessageCircle, Send, X
+} from 'lucide-react';
 import { lineService } from '../services/WiCare.LineService';
 
 interface CaregiverProfileViewProps {
@@ -8,201 +10,175 @@ interface CaregiverProfileViewProps {
   onClose: () => void;
 }
 
+// 預設的長輩資料
+const defaultElderlyData = {
+  name: '王奶奶',
+  age: 78,
+  phone: '0912-345-678',
+  address: '台北市信義區松山路100號',
+  emergencyContact: '王先生 (兒子) 0923-456-789',
+  healthConditions: ['高血壓', '糖尿病', '輕度關節炎'],
+  lastActivity: new Date()
+};
+
 const CaregiverProfileView: React.FC<CaregiverProfileViewProps> = ({ isOpen, onClose }) => {
-  const { 
-    profile, 
-    updateField, 
-    isValid, 
-    isPhoneValid, 
-    saveProfile, 
-    handleAvatarUpload 
-  } = useCaregiverViewModel(onClose);
+  const [notificationStatus, setNotificationStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const elderlyData = defaultElderlyData;
 
-  const [showLineHelp, setShowLineHelp] = useState(false);
-  const [isTestingLine, setIsTestingLine] = useState(false);
-
-  const handleTestLine = async () => {
-    if (!profile.lineChannelToken || !profile.lineUserId) {
-        alert("請�?輸入 Channel Token ??User ID");
-        return;
-    }
-    setIsTestingLine(true);
-    const success = await lineService.sendTestMessage(profile.lineChannelToken, profile.lineUserId);
-    setIsTestingLine(false);
-    
-    if (success) {
-        alert("測試?�送�??��?\n(請�???Console ?��?模擬??API 請�?)");
-    } else {
-        alert("?�送失?��?請檢?�設定�?);
+  const handleTestNotification = async () => {
+    setNotificationStatus('sending');
+    try {
+      const success = await lineService.sendFallAlert();
+      if (success) {
+        setNotificationStatus('sent');
+        alert("測試發送成功！\n(請查看 Console 了解模擬的 API 請求)");
+      } else {
+        setNotificationStatus('error');
+        alert("發送失敗，請檢查 LINE Bot 設定");
+      }
+    } catch (error) {
+      setNotificationStatus('error');
+      alert("發送失敗，請檢查設定");
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[110] bg-slate-50 flex flex-col animate-in slide-in-from-right duration-300">
-      
-      {/* Header */}
-      <div className="bg-white px-4 py-3 shadow-sm border-b border-slate-100 flex items-center justify-between sticky top-0 z-10">
-        <button 
-          onClick={onClose}
-          className="p-2 -ml-2 text-slate-600 hover:bg-slate-50 rounded-full transition-colors"
-        >
-          <ArrowLeft className="w-6 h-6" />
-        </button>
-        <h1 className="font-bold text-lg text-slate-800">?�顧?��???/h1>
-        <div className="w-10" />
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="max-w-md mx-auto space-y-8">
-
-          {/* Avatar Section */}
-          <div className="flex flex-col items-center">
-            <div className="relative group">
-              <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg bg-slate-200 flex items-center justify-center">
-                {profile.avatarUrl ? (
-                  <img src={profile.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                ) : (
-                  <User className="w-10 h-10 text-slate-400" />
-                )}
-              </div>
-              <label className="absolute bottom-0 right-0 bg-blue-500 text-white p-2 rounded-full shadow-md cursor-pointer hover:bg-blue-600 transition-colors">
-                <Camera className="w-4 h-4" />
-                <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
-              </label>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl">
+        {/* Header */}
+        <div className="sticky top-0 bg-white border-b border-slate-200 rounded-t-2xl">
+          <div className="flex items-center justify-between px-4 py-3">
+            <button 
+              onClick={onClose}
+              className="p-2 -ml-2 hover:bg-slate-100 rounded-full transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5 text-slate-600" />
+            </button>
+            <div className="flex items-center gap-2">
+              <User className="w-5 h-5 text-teal-600" />
+              <h1 className="font-bold text-lg text-slate-800">長輩資料</h1>
             </div>
-            <p className="mt-3 text-sm text-slate-500">點�??��?大頭�?/p>
+            <button 
+              onClick={onClose}
+              className="p-2 -mr-2 hover:bg-slate-100 rounded-full transition-colors"
+            >
+              <X className="w-5 h-5 text-slate-600" />
+            </button>
+          </div>
+        </div>
+
+        <div className="p-4 space-y-4">
+          {/* Profile Card */}
+          <div className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-2xl p-6 border border-teal-100">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-full flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                {elderlyData.name.charAt(0)}
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-slate-800">{elderlyData.name}</h2>
+                <p className="text-slate-500">{elderlyData.age} 歲</p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <Phone className="w-4 h-4 text-slate-400" />
+                <span className="text-sm text-slate-600">{elderlyData.phone}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <MapPin className="w-4 h-4 text-slate-400" />
+                <span className="text-sm text-slate-600">{elderlyData.address}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Calendar className="w-4 h-4 text-slate-400" />
+                <span className="text-sm text-slate-600">
+                  最後活動：{elderlyData.lastActivity.toLocaleString('zh-TW')}
+                </span>
+              </div>
+            </div>
           </div>
 
-          {/* Form Section */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-            
-            {/* Name Input */}
-            <div className="p-4 border-b border-slate-50">
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-                姓�?
-              </label>
-              <input 
-                type="text" 
-                value={profile.name}
-                onChange={(e) => updateField('name', e.target.value)}
-                placeholder="請輸?�您?��???
-                className="w-full text-lg text-slate-800 placeholder:text-slate-300 focus:outline-none"
-              />
+          {/* Health Conditions */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+            <div className="flex items-center gap-2 mb-3">
+              <Heart className="w-4 h-4 text-rose-500" />
+              <h3 className="font-semibold text-slate-800">健康狀況</h3>
             </div>
-
-            {/* Phone Input */}
-            <div className="p-4 border-b border-slate-50 relative">
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-                ?��??�碼
-              </label>
-              <input 
-                type="tel" 
-                inputMode="numeric"
-                pattern="[0-9]*"
-                value={profile.phone}
-                onChange={(e) => {
-                    const val = e.target.value.replace(/\D/g, '');
-                    updateField('phone', val);
-                }}
-                placeholder="0912345678"
-                maxLength={10}
-                className={`w-full text-lg focus:outline-none ${
-                    profile.phone && !isPhoneValid ? 'text-red-500' : 'text-slate-800'
-                }`}
-              />
-              {profile.phone.length > 0 && (
-                  <div className="absolute right-4 top-9">
-                      {isPhoneValid ? (
-                          <Check className="w-5 h-5 text-green-500" />
-                      ) : (
-                          <AlertCircle className="w-5 h-5 text-red-500" />
-                      )}
-                  </div>
-              )}
-            </div>
-
-            {/* Line Bot Settings */}
-            <div className="p-4 bg-slate-50/50">
-              <div className="flex items-center gap-2 mb-2">
-                <Bot className="w-4 h-4 text-[#00B900]" />
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  Line Bot 設�? (Messaging API)
-                </label>
-                <button 
-                  onClick={() => setShowLineHelp(!showLineHelp)}
-                  className="ml-auto text-blue-500 hover:text-blue-600 transition-colors flex items-center gap-1 text-xs"
+            <div className="flex flex-wrap gap-2">
+              {elderlyData.healthConditions.map((condition, index) => (
+                <span
+                  key={index}
+                  className="px-3 py-1 bg-rose-50 text-rose-600 rounded-full text-sm font-medium"
                 >
-                    <HelpCircle className="w-3.5 h-3.5" />
-                    <span className="underline">如�?設�?�?/span>
-                </button>
-              </div>
-              
-              {showLineHelp && (
-                  <div className="mb-4 p-3 bg-blue-50 text-blue-800 text-xs rounded-lg leading-relaxed animate-in fade-in zoom-in-95 duration-200 border border-blue-100">
-                      <p className="font-bold mb-1">請�?往 <a href="https://developers.line.biz/console/" target="_blank" className="underline text-blue-600">LINE Developers Console</a>�?/p>
-                      <ul className="list-decimal pl-4 space-y-1 opacity-90">
-                          <li>建�?一??Provider ??Messaging API Channel??/li>
-                          <li>??<strong>Messaging API</strong> ?��?，產??<strong>Channel access token</strong>??/li>
-                          <li>??<strong>Basic settings</strong> ?��?，捲?��??�找??<strong>Your user ID</strong> (?�發?��?????/li>
-                      </ul>
-                      <p className="mt-2 text-[10px] text-blue-600/70">* 註�?�??上�??�?��? Webhook ?��?一?�用??ID??/p>
-                  </div>
-              )}
-
-              <div className="space-y-3">
-                {/* Channel Access Token */}
-                <div>
-                   <label className="text-[10px] text-slate-400 font-bold mb-1 block">Channel Access Token</label>
-                   <textarea
-                        value={profile.lineChannelToken}
-                        onChange={(e) => updateField('lineChannelToken', e.target.value)}
-                        placeholder="請貼上長串�? Access Token..."
-                        className="w-full h-16 text-xs font-mono text-slate-600 bg-white border border-slate-200 rounded px-2 py-2 focus:outline-none focus:border-[#00B900] transition-all resize-none"
-                    />
-                </div>
-
-                {/* User ID */}
-                <div className="flex gap-2 items-end">
-                    <div className="flex-1">
-                        <label className="text-[10px] text-slate-400 font-bold mb-1 block">Target User ID</label>
-                        <input
-                            type="text"
-                            value={profile.lineUserId}
-                            onChange={(e) => updateField('lineUserId', e.target.value)}
-                            placeholder="U1234abcd..."
-                            className="w-full text-xs font-mono text-slate-600 bg-white border border-slate-200 rounded px-2 py-2 focus:outline-none focus:border-[#00B900] transition-all"
-                        />
-                    </div>
-                    <button
-                        onClick={handleTestLine}
-                        disabled={isTestingLine || !profile.lineChannelToken || !profile.lineUserId}
-                        className="bg-[#00B900] hover:bg-[#009900] text-white p-2 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed h-[34px] w-[34px] flex items-center justify-center shrink-0 shadow-sm"
-                        title="測試?��?
-                    >
-                        <Send className={`w-3.5 h-3.5 ${isTestingLine ? 'animate-pulse' : ''}`} />
-                    </button>
-                </div>
-              </div>
-
+                  {condition}
+                </span>
+              ))}
             </div>
-
           </div>
 
-          {/* Submit Button */}
-          <button
-            onClick={saveProfile}
-            disabled={!isValid}
-            className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg transition-all transform active:scale-95 flex items-center justify-center gap-2 ${
-              isValid 
-                ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-blue-500/30' 
-                : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
-            }`}
-          >
-            ?��?設�?
-          </button>
+          {/* Emergency Contact */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+            <div className="flex items-center gap-2 mb-3">
+              <Shield className="w-4 h-4 text-amber-500" />
+              <h3 className="font-semibold text-slate-800">緊急聯絡人</h3>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-slate-600">{elderlyData.emergencyContact}</span>
+              <button className="p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100 transition-colors">
+                <Phone className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
 
+          {/* LINE Test */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+            <div className="flex items-center gap-2 mb-3">
+              <MessageCircle className="w-4 h-4 text-green-500" />
+              <h3 className="font-semibold text-slate-800">LINE 通知測試</h3>
+            </div>
+            <button
+              onClick={handleTestNotification}
+              disabled={notificationStatus === 'sending'}
+              className="w-full py-2.5 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-green-600 transition-colors disabled:opacity-50"
+            >
+              {notificationStatus === 'sending' ? (
+                <span>發送中...</span>
+              ) : (
+                <>
+                  <Send className="w-4 h-4" />
+                  <span>發送測試通知</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Activity Log */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+            <div className="flex items-center gap-2 mb-3">
+              <Clock className="w-4 h-4 text-blue-500" />
+              <h3 className="font-semibold text-slate-800">今日活動紀錄</h3>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between py-2 border-b border-slate-100">
+                <span className="text-sm text-slate-600">起床</span>
+                <span className="text-sm font-medium text-slate-800">06:30</span>
+              </div>
+              <div className="flex items-center justify-between py-2 border-b border-slate-100">
+                <span className="text-sm text-slate-600">早餐</span>
+                <span className="text-sm font-medium text-slate-800">07:15</span>
+              </div>
+              <div className="flex items-center justify-between py-2 border-b border-slate-100">
+                <span className="text-sm text-slate-600">外出散步</span>
+                <span className="text-sm font-medium text-slate-800">09:00</span>
+              </div>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-sm text-slate-600">午休</span>
+                <span className="text-sm font-medium text-slate-800">13:00</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
