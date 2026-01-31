@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   Settings, 
   Bell, 
@@ -19,7 +19,10 @@ import {
   Smartphone,
   Clock,
   AlertTriangle,
-  Check
+  Check,
+  Upload,
+  Download,
+  FolderUp
 } from 'lucide-react';
 
 interface SettingSection {
@@ -56,10 +59,119 @@ const SettingsPage: React.FC = () => {
     pollingInterval: 2000
   });
   const [saved, setSaved] = useState(false);
+  const [importStatus, setImportStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
+  const folderInputRef = useRef<HTMLInputElement>(null);
 
   const handleSave = () => {
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handleExportData = () => {
+    try {
+      // Collect all data from localStorage
+      const exportData: Record<string, any> = {};
+      const keys = ['elderly_passport', 'caregiver_profile', 'device_setup_config', 'wi-care-token'];
+      
+      keys.forEach(key => {
+        const value = localStorage.getItem(key);
+        if (value) {
+          try {
+            exportData[key] = JSON.parse(value);
+          } catch {
+            exportData[key] = value;
+          }
+        }
+      });
+
+      // Create a blob with the JSON data
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      // Create download link
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `wicare-backup-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      alert('資料匯出成功！');
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('匯出失敗，請重試');
+    }
+  };
+
+  const handleFolderUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    setImportStatus('processing');
+
+    try {
+      const importedData: Record<string, any> = {};
+      let filesProcessed = 0;
+
+      // Process all files
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        
+        // Only process JSON files
+        if (file.name.endsWith('.json')) {
+          const text = await file.text();
+          try {
+            const data = JSON.parse(text);
+            
+            // If it's a backup file, merge its contents
+            if (file.name.includes('backup')) {
+              Object.assign(importedData, data);
+            } else {
+              // Individual file - use filename (without .json) as key
+              const key = file.name.replace('.json', '');
+              importedData[key] = data;
+            }
+            filesProcessed++;
+          } catch (e) {
+            console.warn(`Failed to parse ${file.name}:`, e);
+          }
+        }
+      }
+
+      // Import data to localStorage
+      if (Object.keys(importedData).length > 0) {
+        Object.entries(importedData).forEach(([key, value]) => {
+          localStorage.setItem(key, JSON.stringify(value));
+        });
+
+        setImportStatus('success');
+        alert(`成功匯入 ${filesProcessed} 個檔案的資料！\n請重新整理頁面以套用變更。`);
+        
+        setTimeout(() => {
+          setImportStatus('idle');
+        }, 3000);
+      } else {
+        setImportStatus('error');
+        alert('未找到有效的資料檔案');
+        setTimeout(() => setImportStatus('idle'), 3000);
+      }
+    } catch (error) {
+      console.error('Import error:', error);
+      setImportStatus('error');
+      alert('匯入失敗，請確認檔案格式正確');
+      setTimeout(() => setImportStatus('idle'), 3000);
+    }
+
+    // Reset input
+    if (event.target) {
+      event.target.value = '';
+    }
+  };
+
+  const triggerFolderUpload = () => {
+    folderInputRef.current?.click();
   };
 
   const renderSection = () => {
@@ -413,10 +525,38 @@ const SettingsPage: React.FC = () => {
           <div className="settings-section">
             <h3 className="section-title">資料管理</h3>
             
-            <div className="setting-item clickable">
+            {/* Hidden file input for folder upload */}
+            <input
+              ref={folderInputRef}
+              type="file"
+              multiple
+              accept=".json"
+              onChange={handleFolderUpload}
+              style={{ display: 'none' }}
+            />
+
+            <div className="setting-item clickable" onClick={handleExportData}>
               <div className="setting-info">
-                <Database size={18} />
+                <Download size={18} />
                 <span className="setting-label">匯出資料</span>
+                <span className="setting-desc">下載備份檔案</span>
+              </div>
+              <ChevronRight size={18} className="chevron" />
+            </div>
+
+            <div 
+              className={`setting-item clickable ${importStatus === 'processing' ? 'disabled' : ''}`}
+              onClick={importStatus === 'idle' ? triggerFolderUpload : undefined}
+            >
+              <div className="setting-info">
+                <FolderUp size={18} />
+                <span className="setting-label">匯入資料夾</span>
+                <span className="setting-desc">
+                  {importStatus === 'processing' ? '處理中...' : 
+                   importStatus === 'success' ? '匯入成功！' :
+                   importStatus === 'error' ? '匯入失敗' :
+                   '上傳完整的資料夾或多個檔案'}
+                </span>
               </div>
               <ChevronRight size={18} className="chevron" />
             </div>
