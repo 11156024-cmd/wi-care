@@ -19,8 +19,11 @@ import {
   Smartphone,
   Clock,
   AlertTriangle,
-  Check
+  Check,
+  Upload,
+  Download
 } from 'lucide-react';
+import FolderUpload from '../components/WiCare.FolderUpload';
 
 interface SettingSection {
   id: string;
@@ -413,9 +416,35 @@ const SettingsPage: React.FC = () => {
           <div className="settings-section">
             <h3 className="section-title">資料管理</h3>
             
+            {/* Folder Upload Section */}
+            <div className="data-upload-section">
+              <h4 className="subsection-title">
+                <Upload size={18} />
+                上傳資料夾
+              </h4>
+              <p className="subsection-desc">
+                您可以上傳包含健康記錄、文件或其他資料的完整資料夾
+              </p>
+              <div className="folder-upload-wrapper">
+                <FolderUpload
+                  onUploadComplete={(files) => {
+                    console.log('Upload complete:', files);
+                    alert(`成功上傳 ${files.length} 個檔案！`);
+                  }}
+                  onUploadError={(error) => {
+                    console.error('Upload error:', error);
+                    alert(`上傳失敗: ${error}`);
+                  }}
+                  maxFileSize={10 * 1024 * 1024} // 10MB per file
+                />
+              </div>
+            </div>
+
+            <div className="divider"></div>
+
             <div className="setting-item clickable">
               <div className="setting-info">
-                <Database size={18} />
+                <Download size={18} />
                 <span className="setting-label">匯出資料</span>
               </div>
               <ChevronRight size={18} className="chevron" />

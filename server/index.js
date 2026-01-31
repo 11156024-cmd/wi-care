@@ -8,6 +8,10 @@ const PORT = 3001;
 app.use(cors());
 app.use(express.json());
 
+// Middleware for handling multipart/form-data (file uploads)
+// In a production environment, you would use multer or similar
+app.use(express.urlencoded({ extended: true }));
+
 // ========================================
 // 模擬資料庫 (實際應用應使用真實資料庫)
 // ========================================
@@ -333,6 +337,38 @@ app.post('/api/devices/:id/heartbeat', (req, res) => {
 // 跌倒偵測 API
 // ========================================
 
+// 接收資料夾上傳 (用於健康記錄、文件等)
+app.post('/api/upload/folder', (req, res) => {
+  // Note: In production, you would use multer or similar middleware to handle file uploads
+  // This is a simplified version that accepts file metadata
+  
+  console.log('[UPLOAD] 收到資料夾上傳請求');
+  
+  // Simulate processing uploaded files
+  // In production, files would be saved to disk or cloud storage
+  
+  const uploadedFiles = [];
+  
+  // This is a mock response - in production, you would:
+  // 1. Save files to storage (local disk, S3, etc.)
+  // 2. Validate file types and sizes
+  // 3. Process files (e.g., extract health data, generate thumbnails)
+  // 4. Store file metadata in database
+  
+  res.json({
+    success: true,
+    message: '資料夾上傳成功',
+    data: {
+      uploadedFiles: uploadedFiles.length,
+      timestamp: new Date().toISOString()
+    }
+  });
+});
+
+// ========================================
+// 跌倒偵測 API (舊有部分)
+// ========================================
+
 // 接收跌倒警報 (來自 ESP32)
 app.post('/api/fall-detection/alert', (req, res) => {
   const { deviceId, csiData, accelerometerData } = req.body;
@@ -452,6 +488,7 @@ app.listen(PORT, () => {
   console.log('║   • GET  /api/elderly         - 取得長者列表             ║');
   console.log('║   • GET  /api/devices         - 取得設備列表             ║');
   console.log('║   • GET  /api/events          - 取得事件紀錄             ║');
+  console.log('║   • POST /api/upload/folder   - 上傳資料夾               ║');
   console.log('║   • POST /api/fall-detection/alert - 跌倒警報            ║');
   console.log('║   • GET  /api/stats/dashboard - 儀表板統計               ║');
   console.log('║                                                          ║');
