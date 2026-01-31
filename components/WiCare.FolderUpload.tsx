@@ -169,8 +169,7 @@ export const FolderUpload: React.FC<FolderUploadProps> = ({
           ref={fileInputRef}
           type="file"
           // @ts-ignore - webkitdirectory is not in standard TypeScript definitions
-          webkitdirectory=""
-          directory=""
+          {...({ webkitdirectory: "", directory: "" } as any)}
           multiple
           onChange={handleFolderSelect}
           style={{ display: 'none' }}
