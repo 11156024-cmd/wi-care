@@ -1,0 +1,7 @@
+{
+  "name": "Wi-Care Fall Detection",
+  "description": "A web-based dashboard for the Wi-Care fall detection system for the elderly, featuring real-time monitoring, alerts, and demo modes.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

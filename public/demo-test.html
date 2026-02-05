@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wi-Care 應用程式內測試</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .container {
+            background: white;
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 600px;
+        }
+        
+        h1 {
+            color: #333;
+            margin: 0 0 30px 0;
+        }
+        
+        .info {
+            background: #f0f0f0;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            color: #666;
+            line-height: 1.8;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-direction: column;
+        }
+        
+        button {
+            padding: 15px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .btn-test {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-test:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            display: none;
+        }
+        
+        .status.success {
+            background: #e0ffe0;
+            color: #51cf66;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 Wi-Care 應用程式內測試</h1>
+        
+        <div class="info">
+            <p><strong>ESP32 離線了？</strong></p>
+            <p>別擔心！你可以在應用程式內直接測試所有功能，無需 ESP32。</p>
+            <p>點擊下方按鈕啟用測試模式，然後在主應用程式中：</p>
+            <ul style="text-align: left; display: inline-block;">
+                <li>點擊 <strong>左上角</strong> = 強制安全（綠色）</li>
+                <li>點擊 <strong>右上角</strong> = 強制跌倒（紅色）</li>
+            </ul>
+        </div>
+        
+        <div class="buttons">
+            <button class="btn-test" onclick="goToApp()">
+                ➡️ 前往應用程式開始測試
+            </button>
+        </div>
+        
+        <div class="status success" id="status">
+            ✅ 已啟用測試模式！請在新打開的應用程式中測試。
+        </div>
+        
+        <div class="info" style="margin-top: 30px; font-size: 13px;">
+            <p><strong>完全功能測試清單：</strong></p>
+            <ul style="text-align: left; display: inline-block; color: #333;">
+                <li>✅ 界面變紅色（⚠️ 緊急）</li>
+                <li>✅ 播放警報聲音</li>
+                <li>✅ 顯示振動提示</li>
+                <li>✅ 觸發 LINE 通知</li>
+                <li>✅ 恢復到綠色（一切安好）</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function goToApp() {
+            document.getElementById('status').style.display = 'block';
+            // 新視窗打開主應用程式
+            setTimeout(() => {
+                window.location.href = 'http://localhost:3000';
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
