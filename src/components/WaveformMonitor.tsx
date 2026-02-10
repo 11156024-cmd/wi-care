@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { Activity, Zap, Pause, Play, Settings } from 'lucide-react';
+import { Activity, Zap, Pause, Play, Settings, Wifi, WifiOff } from 'lucide-react';
+import wsService from '../services/WebSocketService';
 
 interface WaveformMonitorProps {
   isOffline?: boolean;
@@ -17,25 +18,50 @@ const WaveformMonitor: React.FC<WaveformMonitorProps> = ({
   const [showSettings, setShowSettings] = useState(false);
   const [sensitivity, setSensitivity] = useState(1);
   const [displayMode, setDisplayMode] = useState<'line' | 'bar'>('line');
+  const [wsConnected, setWsConnected] = useState(false);
+  const [dataSource, setDataSource] = useState<'ws' | 'sim'>('ws');
   const title = 'CSI 波形監測';
 
-  // 模擬 CSI 數據生成
+  // WebSocket 即時數據 或 模擬數據
   useEffect(() => {
     if (!isMonitoring || isOffline) return;
 
-    const interval = setInterval(() => {
-      setData(prev => {
-        const newValue = Math.sin(Date.now() / 200) * 50 + Math.random() * 30 - 15;
-        const newData = [...prev, newValue];
-        // 保留最近 100 個數據點
-        if (newData.length > 100) {
-          return newData.slice(-100);
-        }
-        return newData;
-      });
-    }, 50);
+    // 嘗試 WebSocket 連線
+    wsService.connect();
+    const unsubConnect = wsService.on('connected', () => setWsConnected(true));
 
-    return () => clearInterval(interval);
+    // 接收即時感測數據
+    const unsubSensor = wsService.on('sensor_update', (msg) => {
+      if (msg.movement_score != null) {
+        setData(prev => {
+          const newData = [...prev, msg.movement_score!];
+          return newData.length > 100 ? newData.slice(-100) : newData;
+        });
+        setDataSource('ws');
+      }
+    });
+
+    // Fallback: 如果 WebSocket 沒數據，自動切換模擬模式
+    let simInterval: ReturnType<typeof setInterval> | null = null;
+    const simTimeout = setTimeout(() => {
+      if (dataSource !== 'ws' || !wsConnected) {
+        simInterval = setInterval(() => {
+          setData(prev => {
+            const newValue = Math.sin(Date.now() / 200) * 50 + Math.random() * 30 - 15;
+            const newData = [...prev, newValue];
+            return newData.length > 100 ? newData.slice(-100) : newData;
+          });
+          setDataSource('sim');
+        }, 50);
+      }
+    }, 3000); // 3 秒後若無數據則啟用模擬
+
+    return () => {
+      unsubConnect();
+      unsubSensor();
+      clearTimeout(simTimeout);
+      if (simInterval) clearInterval(simInterval);
+    };
   }, [isMonitoring, isOffline]);
 
   const onToggleMonitoring = useCallback(() => {
@@ -230,7 +256,7 @@ const WaveformMonitor: React.FC<WaveformMonitorProps> = ({
         <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none"></div>
       </div>
 
-      <div className="flex justify-between p-4 border-t border-slate-100 text-xs">
+      <div className="flex justify-between items-center p-4 border-t border-slate-100 text-xs">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-blue-500"></div>
           <span className="text-slate-400">當前:</span>
@@ -245,6 +271,14 @@ const WaveformMonitor: React.FC<WaveformMonitorProps> = ({
           <div className="w-2 h-2 rounded-full bg-amber-500"></div>
           <span className="text-slate-400">最大:</span>
           <span className="text-slate-700 font-semibold">{maxValue.toFixed(1)}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          {dataSource === 'ws' ? (
+            <Wifi className="w-3 h-3 text-emerald-500" />
+          ) : (
+            <WifiOff className="w-3 h-3 text-amber-500" />
+          )}
+          <span className="text-slate-400">{dataSource === 'ws' ? '即時' : '模擬'}</span>
         </div>
       </div>
     </div>

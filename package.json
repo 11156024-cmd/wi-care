@@ -21,13 +21,16 @@
     "prepare": "echo 'Ready to develop'"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.556.0",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
     "react-router-dom": "^7.12.0",
-    "recharts": "^3.5.1"
+    "recharts": "^3.5.1",
+    "ws": "^8.18.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",

@@ -3,7 +3,7 @@ import {
   ArrowLeft, User, Phone, MapPin, Calendar, Heart, 
   Clock, Shield, MessageCircle, Send, X
 } from 'lucide-react';
-import { lineService } from '../services/WiCare.LineService';
+import { lineService } from '../services/LineService';
 
 interface CaregiverProfileViewProps {
   isOpen: boolean;

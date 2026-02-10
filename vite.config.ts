@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => {
       },
       resolve: {
         alias: {
-          '@': path.resolve(__dirname, '.'),
+          '@': path.resolve(__dirname, 'src'),
         }
       },
       test: {
@@ -27,7 +27,7 @@ export default defineConfig(({ mode }) => {
         coverage: {
           provider: 'v8',
           reporter: ['text', 'json', 'html'],
-          include: ['components/**', 'hooks/**', 'utils/**', 'services/**'],
+          include: ['src/components/**', 'src/hooks/**', 'src/utils/**', 'src/services/**'],
           exclude: ['node_modules', 'tests'],
         },
       },

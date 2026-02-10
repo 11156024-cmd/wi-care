@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
-import { RegistrationData } from '../WiCare.Types';
+import { RegistrationData } from '../types';
 
 interface RegistrationModalProps {
   isOpen: boolean;

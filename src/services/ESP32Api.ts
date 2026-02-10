@@ -1,4 +1,4 @@
-import { DeviceData } from '../WiCare.Types';
+import { DeviceData } from '../types';
 
 /**
  * Wi-Care ESP32-S3 真實硬體 API 服務

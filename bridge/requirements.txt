@@ -1,0 +1,5 @@
+# Wi-Care Python Bridge 依賴
+requests>=2.31.0
+pyserial>=3.5
+google-generativeai>=0.8.0
+python-dotenv>=1.0.0

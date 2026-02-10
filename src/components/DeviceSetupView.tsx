@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Cpu, Wifi, WifiOff, RefreshCw, CheckCircle, AlertCircle, Zap, Settings, Radio, Activity, Shield, Server, Gauge, X } from 'lucide-react';
-import { esp32Service } from '../services/WiCare.ESP32Service';
-import { checkESP32Health } from '../services/WiCare.ESP32Api';
+import { esp32Service } from '../services/ESP32Service';
+import { checkESP32Health } from '../services/ESP32Api';
 
 interface DeviceSetupViewProps {
   isOpen: boolean;

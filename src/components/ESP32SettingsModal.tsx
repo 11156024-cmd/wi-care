@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Settings, AlertCircle, CheckCircle, Wifi } from 'lucide-react';
-import { esp32Service } from '../services/WiCare.ESP32Service';
-import { updateESP32Config, checkESP32Health } from '../services/WiCare.ESP32Api';
+import { esp32Service } from '../services/ESP32Service';
+import { updateESP32Config, checkESP32Health } from '../services/ESP32Api';
 
 interface ESP32SettingsModalProps {
   isOpen: boolean;

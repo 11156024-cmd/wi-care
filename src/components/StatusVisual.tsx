@@ -1,6 +1,6 @@
 import React from 'react';
 import { ShieldCheck, Activity, AlertTriangle } from 'lucide-react';
-import { SystemStatus } from '../WiCare.Types';
+import { SystemStatus } from '../types';
 
 interface StatusVisualProps {
   status: SystemStatus;

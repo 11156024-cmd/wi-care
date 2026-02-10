@@ -27,15 +27,15 @@ import {
   Cell
 } from 'recharts';
 
-import { SystemStatus, DashboardStats, SceneMode } from '../WiCare.Types';
-import { fetchDeviceStatus, isESP32Connected, getESP32ConnectionStatus, checkESP32Health } from '../services/WiCare.ESP32Api';
-import { audioService } from '../services/WiCare.AudioService';
-import { lineService } from '../services/WiCare.LineService';
-import { esp32Service } from '../services/WiCare.ESP32Service';
-import StatusVisual from '../components/WiCare.StatusVisual';
-import AlertOverlay from '../components/WiCare.AlertOverlay';
-import HiddenControls from '../components/WiCare.HiddenControls';
-import WaveformMonitor from '../components/WiCare.WaveformMonitor';
+import { SystemStatus, DashboardStats, SceneMode } from '../types';
+import { fetchDeviceStatus, isESP32Connected, getESP32ConnectionStatus, checkESP32Health } from '../services/ESP32Api';
+import { audioService } from '../services/AudioService';
+import { lineService } from '../services/LineService';
+import { esp32Service } from '../services/ESP32Service';
+import StatusVisual from '../components/StatusVisual';
+import AlertOverlay from '../components/AlertOverlay';
+import HiddenControls from '../components/HiddenControls';
+import WaveformMonitor from '../components/WaveformMonitor';
 
 // Mock Data for Charts
 const ACTIVITY_DATA = [
@@ -138,7 +138,7 @@ const MonitorPage: React.FC<MonitorPageProps> = ({ esp32Connected, setEsp32Conne
   // 測試功能
   const handleForceSafe = async () => {
     try {
-      const { clearESP32FallDetection } = await import('../services/WiCare.ESP32Api');
+      const { clearESP32FallDetection } = await import('../services/ESP32Api');
       await clearESP32FallDetection();
       console.log('[MonitorPage] 已通知 ESP32 清除跌倒狀態');
     } catch (error) {
@@ -149,7 +149,7 @@ const MonitorPage: React.FC<MonitorPageProps> = ({ esp32Connected, setEsp32Conne
 
   const handleForceFall = async () => {
     try {
-      const { triggerESP32FallDetection } = await import('../services/WiCare.ESP32Api');
+      const { triggerESP32FallDetection } = await import('../services/ESP32Api');
       await triggerESP32FallDetection();
       console.log('[MonitorPage] 已通知 ESP32 觸發跌倒');
     } catch (error) {
@@ -160,7 +160,7 @@ const MonitorPage: React.FC<MonitorPageProps> = ({ esp32Connected, setEsp32Conne
 
   const handleDismissAlert = async () => {
     try {
-      const { clearESP32FallDetection } = await import('../services/WiCare.ESP32Api');
+      const { clearESP32FallDetection } = await import('../services/ESP32Api');
       await clearESP32FallDetection();
       audioService.stopAlarm();
       console.log('[MonitorPage] 警報已解除');

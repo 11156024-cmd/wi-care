@@ -1,5 +1,5 @@
 import React from 'react';
-import { SystemStatus } from '../WiCare.Types';
+import { SystemStatus } from '../types';
 
 interface HiddenControlsProps {
   isEnabled?: boolean;

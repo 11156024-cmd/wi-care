@@ -23,6 +23,6 @@ export {
 } from './useLocalStorage';
 
 // ViewModel Hooks
-export { useCaregiverViewModel } from './WiCare.useCaregiverViewModel';
-export { useDeviceSetupViewModel } from './WiCare.useDeviceSetupViewModel';
-export { useElderlyViewModel } from './WiCare.useElderlyViewModel';
+export { useCaregiverViewModel } from './useCaregiverViewModel';
+export { useDeviceSetupViewModel } from './useDeviceSetupViewModel';
+export { useElderlyViewModel } from './useElderlyViewModel';

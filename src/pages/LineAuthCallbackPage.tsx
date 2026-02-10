@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { handleLineLoginCallback } from '../services/WiCare.LineLoginService';
+import { handleLineLoginCallback } from '../services/LineLoginService';
 
 export const LineAuthCallbackPage: React.FC = () => {
   const navigate = useNavigate();

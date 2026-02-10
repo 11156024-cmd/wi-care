@@ -24,6 +24,12 @@ export const getAuthToken = (): string | null => {
   return authToken;
 };
 
+// 清除 token
+export const clearAuthToken = () => {
+  authToken = null;
+  localStorage.removeItem('wi-care-token');
+};
+
 // 通用 fetch 函數
 const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
   const token = getAuthToken();

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, LogIn, User, Lock, Eye, EyeOff, Shield, UserPlus, Phone, Mail, ArrowLeft } from 'lucide-react';
-import { authApi } from '../services/WiCare.ApiService';
-import { openLineLoginWindow } from '../services/WiCare.LineLoginService';
+import { authApi } from '../services/ApiService';
+import { openLineLoginWindow } from '../services/LineLoginService';
 
 interface LoginModalProps {
   isOpen: boolean;

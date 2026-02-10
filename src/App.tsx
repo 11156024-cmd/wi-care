@@ -22,10 +22,12 @@ import DevicesPage from './pages/DevicesPage';
 import SettingsPage from './pages/SettingsPage';
 
 // Components
-import LoginModal from './components/WiCare.LoginModal';
+import LoginModal from './components/LoginModal';
 
 // Services
-import { checkESP32Health } from './services/WiCare.ESP32Api';
+import { checkESP32Health } from './services/ESP32Api';
+import { authApi, setAuthToken, getAuthToken, clearAuthToken } from './services/ApiService';
+import wsService from './services/WebSocketService';
 
 // Header Component
 const Header: React.FC<{
@@ -204,8 +206,66 @@ const App: React.FC = () => {
   const [showLogin, setShowLogin] = useState<boolean>(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
-  // 初始化 ESP32 連線狀態
+  // 啟動時從 localStorage 恢復登入狀態
+  useEffect(() => {
+    const token = getAuthToken();
+    if (token) {
+      authApi.verify()
+        .then(user => {
+          if (user) {
+            setIsLoggedIn(true);
+            setCurrentUser(user.name);
+            setUserRole(user.role);
+          } else {
+            clearAuthToken();
+          }
+        })
+        .catch(() => {
+          // Token 無效，嘗試離線模式（保留本地儲存的 user info）
+          const savedUser = localStorage.getItem('wi-care-user');
+          if (savedUser) {
+            try {
+              const u = JSON.parse(savedUser);
+              setIsLoggedIn(true);
+              setCurrentUser(u.name);
+              setUserRole(u.role);
+            } catch { clearAuthToken(); }
+          }
+        });
+    }
+  }, []);
+
+  // 連接 WebSocket
+  useEffect(() => {
+    wsService.connect();
+
+    // 跌倒警報通知
+    const unsubFall = wsService.on('fall_alert', (msg) => {
+      console.log('🚨 跌倒警報:', msg);
+      // 瀏覽器通知
+      if (Notification.permission === 'granted') {
+        new Notification('Wi-Care 緊急警報', {
+          body: `${msg.elderly?.name || '未知'} - ${msg.location || '未知位置'}`,
+          icon: '/favicon.ico',
+          tag: 'fall-alert'
+        });
+      }
+    });
+
+    // 請求通知權限
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
+    return () => {
+      unsubFall();
+      wsService.disconnect();
+    };
+  }, []);
+
+  // ESP32 連線狀態
   useEffect(() => {
     const checkConnection = async () => {
       try {
@@ -224,20 +284,23 @@ const App: React.FC = () => {
   const handleLogin = (username: string, name: string, role: string) => {
     setIsLoggedIn(true);
     setCurrentUser(name);
+    setUserRole(role);
     setShowLogin(false);
-    console.log(`[App] 使用者 ${name} (${username}) 已登入，角色: ${role}`);
+    // 持久化用戶資訊
+    localStorage.setItem('wi-care-user', JSON.stringify({ username, name, role }));
+    console.log(`[App] ${name} (${username}) 已登入，角色: ${role}`);
   };
 
   const handleLogout = async () => {
     try {
-      const { authApi } = await import('./services/WiCare.ApiService');
       await authApi.logout();
-    } catch (error) {
-      console.error('[App] 登出失敗:', error);
-    }
+    } catch { /* ignore */ }
+    clearAuthToken();
+    localStorage.removeItem('wi-care-user');
     setIsLoggedIn(false);
     setCurrentUser(null);
-    console.log('[App] 使用者已登出');
+    setUserRole(null);
+    console.log('[App] 已登出');
   };
 
   return (

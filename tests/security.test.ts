@@ -14,7 +14,7 @@ import {
   secureStore,
   secureRetrieve,
   checkRateLimit,
-} from '../utils/security';
+} from '../src/utils/security';
 
 describe('Security Utils', () => {
   describe('escapeHtml', () => {

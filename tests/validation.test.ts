@@ -8,7 +8,7 @@ import {
   validateField,
   validateForm,
   FieldValidation,
-} from '../utils/validation';
+} from '../src/utils/validation';
 
 describe('Validation Rules', () => {
   describe('required', () => {
