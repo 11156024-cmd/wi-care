@@ -3843,3 +3843,198 @@ body {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
 }
+
+/* ═══════════════════════════════════════════════════════
+   Toast Notification System
+═══════════════════════════════════════════════════════ */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 280px;
+  max-width: 380px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #e2e8f0;
+  font-size: 14px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  pointer-events: all;
+  animation: toastIn 0.25s ease;
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.toast-success { border-left: 3px solid #22c55e; }
+.toast-error   { border-left: 3px solid #ef4444; }
+.toast-info    { border-left: 3px solid #3b82f6; }
+.toast-warning { border-left: 3px solid #f59e0b; }
+
+.toast-icon { flex-shrink: 0; }
+.toast-message { flex: 1; }
+.toast-close {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 2px;
+  flex-shrink: 0;
+  font-size: 16px;
+  line-height: 1;
+}
+.toast-close:hover { color: #94a3b8; }
+
+/* ═══════════════════════════════════════════════════════
+   Settings Page – New Element Styles
+═══════════════════════════════════════════════════════ */
+.settings-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px;
+  color: #64748b;
+  font-size: 15px;
+}
+
+.settings-section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: background 0.15s;
+}
+.settings-section-header:hover { background: #1e293b; }
+
+.sub-item {
+  padding: 10px 20px 10px 36px;
+  border-bottom: 1px solid #1e293b;
+}
+
+.sensitivity-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.sensitivity-slider {
+  flex: 1;
+  accent-color: #3b82f6;
+  cursor: pointer;
+}
+
+.sensitivity-value {
+  min-width: 32px;
+  text-align: right;
+  font-weight: 600;
+  color: #3b82f6;
+  font-size: 13px;
+}
+
+.test-result {
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  background: #1e293b;
+  border: 1px solid #334155;
+}
+.test-result.success { border-color: #22c55e; color: #4ade80; }
+.test-result.error   { border-color: #ef4444; color: #f87171; }
+
+.account-role-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #1e40af;
+  color: #93c5fd;
+}
+.account-role-badge.admin  { background: #7c2d12; color: #fdba74; }
+.account-role-badge.nurse  { background: #14532d; color: #86efac; }
+.account-role-badge.family { background: #1e3a8a; color: #93c5fd; }
+
+.password-control {
+  position: relative;
+  width: 100%;
+}
+.input-with-eye {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+.input-with-eye input {
+  flex: 1;
+  padding-right: 44px;
+}
+.eye-btn {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #64748b;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+}
+.eye-btn:hover { color: #94a3b8; }
+
+.password-strength {
+  margin-top: 6px;
+  height: 4px;
+  border-radius: 2px;
+  background: #334155;
+  overflow: hidden;
+}
+.password-strength::after {
+  content: '';
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s, background 0.3s;
+}
+.password-strength.weak::after   { width: 33%; background: #ef4444; }
+.password-strength.medium::after { width: 66%; background: #f59e0b; }
+.password-strength.strong::after { width: 100%; background: #22c55e; }
+
+.field-error {
+  margin-top: 5px;
+  font-size: 12px;
+  color: #f87171;
+}
+
+.export-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.export-btn small {
+  display: block;
+  font-size: 11px;
+  opacity: 0.7;
+  margin-top: 2px;
+}
+

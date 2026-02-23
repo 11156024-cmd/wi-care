@@ -1,149 +1,205 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { 
-  Wifi, 
-  WifiOff, 
-  Activity, 
-  Clock, 
-  Plug,
+﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
+import {
+  Wifi,
+  WifiOff,
+  Activity,
+  Clock,
   PhoneOutgoing,
-  FileHeart,
   Cpu,
-  Zap,
   BarChart2,
-  UserCircle,
-  AlertTriangle,
   Shield,
-  ChevronRight,
-  ShieldCheck,
-  MapPin,
-  Building2
+  Users,
+  Bell,
+  RefreshCw,
+  AlertTriangle,
+  CheckCircle,
 } from 'lucide-react';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  Tooltip, 
-  ResponsiveContainer, 
-  Cell
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
 } from 'recharts';
 
-import { SystemStatus, DashboardStats, SceneMode } from '../types';
-import { fetchDeviceStatus, isESP32Connected, getESP32ConnectionStatus, checkESP32Health } from '../services/ESP32Api';
+import { SystemStatus, SceneMode } from '../types';
+import { checkESP32Health } from '../services/ESP32Api';
 import { audioService } from '../services/AudioService';
 import { lineService } from '../services/LineService';
-import { esp32Service } from '../services/ESP32Service';
+import { statsApi } from '../services/ApiService';
+import { wsService } from '../services/WebSocketService';
 import StatusVisual from '../components/StatusVisual';
 import AlertOverlay from '../components/AlertOverlay';
 import HiddenControls from '../components/HiddenControls';
 import WaveformMonitor from '../components/WaveformMonitor';
 
-// Mock Data for Charts
-const ACTIVITY_DATA = [
-  { time: '08:00', value: 10 },
-  { time: '10:00', value: 45 },
-  { time: '12:00', value: 30 },
-  { time: '14:00', value: 15 },
-  { time: '16:00', value: 60 },
-  { time: '18:00', value: 20 },
-];
+interface DashboardStats {
+  totalElderly: number;
+  onlineDevices: number;
+  totalDevices: number;
+  todayEvents: number;
+  todayFallAlerts: number;
+  unresolvedAlerts: number;
+}
+
+interface ActivityPoint {
+  time: string;
+  value: number;
+}
+
+const buildHourlySlots = (): ActivityPoint[] => {
+  const now = new Date();
+  return Array.from({ length: 6 }, (_, i) => {
+    const h = now.getHours() - 10 + i * 2;
+    const label = `${((h + 24) % 24).toString().padStart(2, '0')}:00`;
+    return { time: label, value: 0 };
+  });
+};
 
 interface MonitorPageProps {
   esp32Connected: boolean;
-  setEsp32Connected: (connected: boolean) => void;
+  setEsp32Connected: (v: boolean) => void;
 }
 
 const MonitorPage: React.FC<MonitorPageProps> = ({ esp32Connected, setEsp32Connected }) => {
   const [status, setStatus] = useState<SystemStatus>(SystemStatus.SAFE);
-  const [isOffline, setIsOffline] = useState<boolean>(true); 
-  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [isOffline, setIsOffline] = useState<boolean>(true);
   const [showDevTools, setShowDevTools] = useState<boolean>(false);
-  
-  const [sceneMode, setSceneMode] = useState<SceneMode>('bathroom');
-  const [deviceId, setDeviceId] = useState<string>('Wi-Care-Station-01');
-  
-  const [stats, setStats] = useState<DashboardStats>({
-    lastActivity: '剛剛',
-    activityHours: 4.5
+  const [sceneMode, setSceneMode] = useState<SceneMode>(() => {
+    return (localStorage.getItem('wi-care-scene-mode') as SceneMode) || 'bathroom';
   });
-  
+  const [deviceId] = useState<string>(() =>
+    localStorage.getItem('wi-care-esp32-device-id') || 'Wi-Care-Station-01'
+  );
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats>({
+    totalElderly: 0,
+    onlineDevices: 0,
+    totalDevices: 0,
+    todayEvents: 0,
+    todayFallAlerts: 0,
+    unresolvedAlerts: 0,
+  });
+  const [activityData, setActivityData] = useState<ActivityPoint[]>(buildHourlySlots);
+  const [movementScore, setMovementScore] = useState<number>(0);
+  const [lastUpdateTime, setLastUpdateTime] = useState<string>('--');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [callMsg, setCallMsg] = useState<string | null>(null);
   const hasNotifiedRef = useRef<boolean>(false);
 
-  // 初始化 ESP32 連線
+  const loadStats = useCallback(async () => {
+    try {
+      const data = await statsApi.getDashboard();
+      setDashboardStats(prev => ({ ...prev, ...data }));
+    } catch (e) {
+      console.warn('[MonitorPage] 無法取得統計資料:', e);
+    }
+  }, []);
+
   useEffect(() => {
-    const initializeESP32 = async () => {
+    const init = async () => {
       try {
-        console.log('[MonitorPage] 正在初始化 ESP32 連線...');
-        
-        const isConnected = await checkESP32Health();
-        setEsp32Connected(isConnected);
-        setIsOffline(!isConnected);
-        
-        if (isConnected) {
-          console.log('[MonitorPage] ESP32 連線成功');
-          setConnectionError(null);
-        } else {
-          console.log('[MonitorPage] ESP32 離線');
-          setConnectionError('無法連接 ESP32');
-        }
-      } catch (error) {
-        console.error('[MonitorPage] ESP32 初始化失敗:', error);
+        const ok = await checkESP32Health();
+        setEsp32Connected(ok);
+        setIsOffline(!ok);
+      } catch {
         setEsp32Connected(false);
         setIsOffline(true);
-        setConnectionError('ESP32 連線錯誤');
       }
     };
+    init();
+    loadStats();
+    const statsTimer = setInterval(loadStats, 30000);
+    return () => clearInterval(statsTimer);
+  }, [setEsp32Connected, loadStats]);
 
-    initializeESP32();
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handleFallAlert = (data: any) => {
+      setStatus(SystemStatus.FALL);
+      if (!hasNotifiedRef.current) {
+        audioService.playAlarm();
+        lineService.sendFallAlert();
+        hasNotifiedRef.current = true;
+      }
+      setLastUpdateTime(new Date().toLocaleTimeString('zh-TW'));
+      setDashboardStats(prev => ({
+        ...prev,
+        todayFallAlerts: prev.todayFallAlerts + 1,
+        todayEvents: prev.todayEvents + 1,
+        unresolvedAlerts: prev.unresolvedAlerts + 1,
+      }));
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handleSensorUpdate = (data: any) => {
+      if (typeof data.movement_score === 'number') {
+        setMovementScore(data.movement_score);
+      }
+      if (data.status === 'safe') {
+        setStatus(prev => {
+          if (prev === SystemStatus.FALL) {
+            audioService.stopAlarm();
+            hasNotifiedRef.current = false;
+          }
+          return SystemStatus.SAFE;
+        });
+      }
+      setLastUpdateTime(new Date().toLocaleTimeString('zh-TW'));
+      setActivityData(prev => {
+        const updated = [...prev];
+        if (updated.length > 0) {
+          updated[updated.length - 1] = {
+            ...updated[updated.length - 1],
+            value: Math.min(100, (updated[updated.length - 1].value || 0) + 1),
+          };
+        }
+        return updated;
+      });
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handleDeviceStatus = (data: any) => {
+      if (data.status === 'online') { setIsOffline(false); setEsp32Connected(true); }
+      else if (data.status === 'offline') { setIsOffline(true); setEsp32Connected(false); }
+    };
+
+    const unsubFall = wsService.on('fall_alert', handleFallAlert);
+    const unsubSensor = wsService.on('sensor_update', handleSensorUpdate);
+    const unsubDevice = wsService.on('device_status', handleDeviceStatus);
+    return () => {
+      unsubFall();
+      unsubSensor();
+      unsubDevice();
+    };
   }, [setEsp32Connected]);
 
-  // ESP32 狀態輪詢
-  useEffect(() => {
-    if (!esp32Connected) return;
+  const handleSceneChange = (mode: SceneMode) => {
+    setSceneMode(mode);
+    localStorage.setItem('wi-care-scene-mode', mode);
+  };
 
-    const pollStatus = async () => {
-      try {
-        const deviceStatus = await fetchDeviceStatus();
-        
-        if (deviceStatus.status === 'fall' && status !== SystemStatus.FALL) {
-          setStatus(SystemStatus.FALL);
-          
-          if (!hasNotifiedRef.current) {
-            console.log('[MonitorPage] 偵測到跌倒! 啟動警報...');
-            audioService.playAlarm();
-            lineService.sendFallAlert();
-            hasNotifiedRef.current = true;
-          }
-        } else if (deviceStatus.status === 'safe' && status === SystemStatus.FALL) {
-          setStatus(SystemStatus.SAFE);
-          audioService.stopAlarm();
-          hasNotifiedRef.current = false;
-        }
-        
-        setStats({
-          lastActivity: '剛剛',
-          activityHours: 4.5
-        });
-        
-      } catch (error) {
-        console.error('[MonitorPage] 狀態輪詢失敗:', error);
-      }
-    };
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      const ok = await checkESP32Health();
+      setEsp32Connected(ok);
+      setIsOffline(!ok);
+      await loadStats();
+      setLastUpdateTime(new Date().toLocaleTimeString('zh-TW'));
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
-    pollStatus();
-    const interval = setInterval(pollStatus, 2000);
-    
-    return () => clearInterval(interval);
-  }, [esp32Connected, status]);
-
-  // 測試功能
   const handleForceSafe = async () => {
     try {
       const { clearESP32FallDetection } = await import('../services/ESP32Api');
       await clearESP32FallDetection();
-      console.log('[MonitorPage] 已通知 ESP32 清除跌倒狀態');
-    } catch (error) {
-      console.error('[MonitorPage] 無法清除跌倒狀態:', error);
-      alert('無法連接 ESP32 來清除狀態');
+    } catch {
+      setStatus(SystemStatus.SAFE);
+      audioService.stopAlarm();
+      hasNotifiedRef.current = false;
     }
   };
 
@@ -151,10 +207,9 @@ const MonitorPage: React.FC<MonitorPageProps> = ({ esp32Connected, setEsp32Conne
     try {
       const { triggerESP32FallDetection } = await import('../services/ESP32Api');
       await triggerESP32FallDetection();
-      console.log('[MonitorPage] 已通知 ESP32 觸發跌倒');
-    } catch (error) {
-      console.error('[MonitorPage] 無法觸發跌倒:', error);
-      alert('無法連接 ESP32 來觸發跌倒');
+    } catch {
+      setStatus(SystemStatus.FALL);
+      audioService.playAlarm();
     }
   };
 
@@ -162,77 +217,78 @@ const MonitorPage: React.FC<MonitorPageProps> = ({ esp32Connected, setEsp32Conne
     try {
       const { clearESP32FallDetection } = await import('../services/ESP32Api');
       await clearESP32FallDetection();
-      audioService.stopAlarm();
-      console.log('[MonitorPage] 警報已解除');
-    } catch (error) {
-      console.error('[MonitorPage] 無法解除警報:', error);
-      audioService.stopAlarm();
-    }
+    } catch { /* ignore */ }
+    setStatus(SystemStatus.SAFE);
+    audioService.stopAlarm();
+    hasNotifiedRef.current = false;
+    setDashboardStats(prev => ({ ...prev, unresolvedAlerts: Math.max(0, prev.unresolvedAlerts - 1) }));
   };
 
   const handleCallFamilyRequest = () => {
-    alert("影像已儲存。正在撥打緊急聯絡人: 1 234 567 890");
+    lineService.sendFallAlert();
+    setCallMsg('已向緊急聯絡人發送 LINE 通知。');
+    setTimeout(() => setCallMsg(null), 5000);
   };
 
-  const handleCallHospital = async () => {
-    if (navigator.vibrate) {
-      navigator.vibrate(200);
-    }
-    
-    // 醫院電話號碼
-    const hospitalNumber = '02-2312-3456';
-    
-    try {
-      // 開啟撥打電話
-      window.location.href = `tel:${hospitalNumber}`;
-      
-      // 同時發送通知
-      lineService.sendFallAlert();
-      
-      alert(`正在撥打給醫院: ${hospitalNumber}\n同時已發送緊急通知給家人。`);
-    } catch (error) {
-      console.error('[MonitorPage] 撥打醫院失敗:', error);
-      // 備用方案：顯示電話號碼讓使用者手動撥打
-      alert(`請手動撥打醫院電話: ${hospitalNumber}`);
-    }
+  const handleCallHospital = () => {
+    if (navigator.vibrate) navigator.vibrate(200);
+    window.location.href = 'tel:02-2312-3456';
+    setCallMsg('正在撥打醫院：02-2312-3456');
+    setTimeout(() => setCallMsg(null), 5000);
   };
 
-  const handleStatusUpdate = (newStatus: SystemStatus) => {
-    setStatus(newStatus);
+  const handleStatusUpdate = (newStatus: SystemStatus) => setStatus(newStatus);
+
+  const sceneModeLabel: Record<string, string> = {
+    bathroom: '浴室', bedroom: '臥室', living_room: '客廳', kitchen: '廚房',
   };
 
   return (
     <div className="page-content">
-      <h1 className="page-title">即時監控</h1>
-      
-      {/* Main Content Grid */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+        <h1 className="page-title" style={{ margin: 0 }}>即時監控</h1>
+        <button
+          onClick={handleManualRefresh}
+          title="重新整理"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#3b82f6', padding: 6 }}
+        >
+          <RefreshCw size={20} className={isRefreshing ? 'spin' : ''} />
+        </button>
+      </div>
+
+      {callMsg && (
+        <div style={{
+          background: '#1e3a5f', color: '#fff', borderRadius: 8, padding: '10px 16px',
+          marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8, fontSize: 14,
+        }}>
+          <CheckCircle size={16} color="#4ade80" />
+          {callMsg}
+        </div>
+      )}
+
       <div className="monitor-grid">
-        {/* Status Visual */}
         <div className="monitor-card status-card">
           <div className="card-header">
             <Activity className="card-icon" />
             <h3>系統狀態</h3>
+            <span style={{ marginLeft: 'auto', fontSize: 12, color: '#888' }}>更新：{lastUpdateTime}</span>
           </div>
-          <StatusVisual 
-            status={status} 
+          <StatusVisual
+            status={status}
             isOffline={isOffline}
             esp32Connected={esp32Connected}
+            movementScore={movementScore}
           />
         </div>
 
-        {/* Waveform Monitor */}
         <div className="monitor-card waveform-card">
           <div className="card-header">
             <BarChart2 className="card-icon" />
             <h3>訊號波形</h3>
           </div>
-          <WaveformMonitor 
-            isConnected={esp32Connected}
-            onStatusUpdate={handleStatusUpdate}
-          />
+          <WaveformMonitor isConnected={esp32Connected} onStatusUpdate={handleStatusUpdate} />
         </div>
 
-        {/* Activity Chart */}
         <div className="monitor-card activity-card">
           <div className="card-header">
             <Clock className="card-icon" />
@@ -240,12 +296,12 @@ const MonitorPage: React.FC<MonitorPageProps> = ({ esp32Connected, setEsp32Conne
           </div>
           <div className="chart-container">
             <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={ACTIVITY_DATA}>
-                <XAxis dataKey="time" tick={{ fontSize: 12 }} />
-                <Tooltip />
+              <BarChart data={activityData}>
+                <XAxis dataKey="time" tick={{ fontSize: 11 }} />
+                <Tooltip formatter={(v: number) => [`${v} 次`, '活動次數']} />
                 <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]}>
-                  {ACTIVITY_DATA.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.value > 40 ? '#22c55e' : '#3b82f6'} />
+                  {activityData.map((_, i) => (
+                    <Cell key={i} fill={activityData[i].value > 40 ? '#22c55e' : '#3b82f6'} />
                   ))}
                 </Bar>
               </BarChart>
@@ -253,7 +309,6 @@ const MonitorPage: React.FC<MonitorPageProps> = ({ esp32Connected, setEsp32Conne
           </div>
         </div>
 
-        {/* Quick Stats */}
         <div className="monitor-card stats-card">
           <div className="card-header">
             <Shield className="card-icon" />
@@ -261,35 +316,67 @@ const MonitorPage: React.FC<MonitorPageProps> = ({ esp32Connected, setEsp32Conne
           </div>
           <div className="stats-grid">
             <div className="stat-item">
-              <span className="stat-label">最後活動</span>
-              <span className="stat-value">{stats.lastActivity}</span>
+              <span className="stat-label"><Users size={12} style={{ verticalAlign:'middle', marginRight:3 }}/>監控人數</span>
+              <span className="stat-value">{dashboardStats.totalElderly} 人</span>
             </div>
             <div className="stat-item">
-              <span className="stat-label">今日活動時間</span>
-              <span className="stat-value">{stats.activityHours} 小時</span>
+              <span className="stat-label"><Wifi size={12} style={{ verticalAlign:'middle', marginRight:3 }}/>連線設備</span>
+              <span className="stat-value">{dashboardStats.onlineDevices}/{dashboardStats.totalDevices}</span>
             </div>
             <div className="stat-item">
-              <span className="stat-label">連線狀態</span>
-              <span className={`stat-value ${esp32Connected ? 'text-green' : 'text-red'}`}>
-                {esp32Connected ? '正常' : '離線'}
+              <span className="stat-label"><Activity size={12} style={{ verticalAlign:'middle', marginRight:3 }}/>今日事件</span>
+              <span className="stat-value">{dashboardStats.todayEvents} 次</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-label"><AlertTriangle size={12} style={{ verticalAlign:'middle', marginRight:3, color:'#ef4444' }}/>跌倒警報</span>
+              <span className="stat-value" style={{ color: dashboardStats.todayFallAlerts > 0 ? '#ef4444' : undefined }}>
+                {dashboardStats.todayFallAlerts} 次
               </span>
             </div>
             <div className="stat-item">
-              <span className="stat-label">場景模式</span>
-              <span className="stat-value">{sceneMode === 'bathroom' ? '浴室' : '臥室'}</span>
+              <span className="stat-label"><Bell size={12} style={{ verticalAlign:'middle', marginRight:3 }}/>未處理警報</span>
+              <span className="stat-value" style={{ color: dashboardStats.unresolvedAlerts > 0 ? '#f59e0b' : undefined }}>
+                {dashboardStats.unresolvedAlerts} 件
+              </span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-label"><Cpu size={12} style={{ verticalAlign:'middle', marginRight:3 }}/>動作分數</span>
+              <span className="stat-value">{movementScore.toFixed(1)}</span>
             </div>
           </div>
         </div>
 
-        {/* 撥打給醫院 Button */}
+        <div className="monitor-card">
+          <div className="card-header">
+            <Shield className="card-icon" />
+            <h3>場景模式</h3>
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', padding: '8px 0' }}>
+            {Object.entries(sceneModeLabel).map(([mode, label]) => (
+              <button
+                key={mode}
+                onClick={() => handleSceneChange(mode as SceneMode)}
+                style={{
+                  padding: '6px 14px', borderRadius: 20, border: '1px solid',
+                  borderColor: sceneMode === mode ? '#3b82f6' : '#374151',
+                  background: sceneMode === mode ? '#3b82f6' : 'transparent',
+                  color: sceneMode === mode ? '#fff' : '#9ca3af',
+                  cursor: 'pointer', fontSize: 13, transition: 'all 0.2s',
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="monitor-card sos-card">
           <button onClick={handleCallHospital} className="sos-button hospital-call">
             <PhoneOutgoing className="sos-icon" />
-            <span>撥打給醫院</span>
+            <span>撥打醫院</span>
           </button>
         </div>
 
-        {/* Device Info */}
         <div className="monitor-card device-card">
           <div className="card-header">
             <Cpu className="card-icon" />
@@ -303,30 +390,20 @@ const MonitorPage: React.FC<MonitorPageProps> = ({ esp32Connected, setEsp32Conne
             <div className="info-row">
               <span className="info-label">ESP32 狀態</span>
               <span className={`info-value ${esp32Connected ? 'text-green' : 'text-red'}`}>
-                {esp32Connected ? (
-                  <><Wifi size={16} /> 已連線</>
-                ) : (
-                  <><WifiOff size={16} /> 離線</>
-                )}
+                {esp32Connected ? <><Wifi size={14}/> 已連線</> : <><WifiOff size={14}/> 離線</>}
               </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Alert Overlay */}
       {status === SystemStatus.FALL && (
-        <AlertOverlay 
-          isVisible={true}
-          onDismiss={handleDismissAlert}
-          onCallFamily={handleCallFamilyRequest}
-        />
+        <AlertOverlay isVisible onDismiss={handleDismissAlert} onCallFamily={handleCallFamilyRequest} />
       )}
 
-      {/* Hidden Dev Controls */}
-      <HiddenControls 
+      <HiddenControls
         show={showDevTools}
-        onToggle={() => setShowDevTools(!showDevTools)}
+        onToggle={() => setShowDevTools(s => !s)}
         onForceSafe={handleForceSafe}
         onForceFall={handleForceFall}
       />

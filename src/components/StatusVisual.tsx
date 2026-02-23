@@ -6,6 +6,7 @@ interface StatusVisualProps {
   status: SystemStatus;
   isOffline?: boolean;
   esp32Connected?: boolean;
+  movementScore?: number;
 }
 
 interface ContainerProps {
@@ -19,7 +20,7 @@ const Container: React.FC<ContainerProps> = ({ children, className = "" }) => (
   </div>
 );
 
-const StatusVisual: React.FC<StatusVisualProps> = ({ status, isOffline, esp32Connected }) => {
+const StatusVisual: React.FC<StatusVisualProps> = ({ status, isOffline, esp32Connected, movementScore = 0 }) => {
   if (status === SystemStatus.FALL) {
     return (
       <Container>
@@ -92,9 +93,28 @@ const StatusVisual: React.FC<StatusVisualProps> = ({ status, isOffline, esp32Con
           <ShieldCheck className="w-9 h-9 sm:w-11 sm:h-11 text-white" />
         </div>
         <p className="text-lg sm:text-xl font-bold text-slate-800 tracking-tight">
-          安全
+          {isOffline || !esp32Connected ? 'ESP32 離線' : '安全'}
         </p>
-        <p className="text-slate-400 text-xs mt-1">系統監控中</p>
+        <p className="text-slate-400 text-xs mt-1">
+          {isOffline || !esp32Connected ? '等待設備連線' : '系統監控中'}
+        </p>
+        {!isOffline && esp32Connected && (
+          <div style={{ marginTop: 8, width: '100%', textAlign: 'center' }}>
+            <p style={{ fontSize: 10, color: '#94a3b8', marginBottom: 3 }}>動作分數</p>
+            <div style={{ background: '#e2e8f0', borderRadius: 4, height: 6, overflow: 'hidden' }}>
+              <div
+                style={{
+                  height: '100%',
+                  width: `${Math.min(100, movementScore)}%`,
+                  background: movementScore > 70 ? '#22c55e' : movementScore > 40 ? '#3b82f6' : '#94a3b8',
+                  borderRadius: 4,
+                  transition: 'width 0.4s ease',
+                }}
+              />
+            </div>
+            <p style={{ fontSize: 10, color: '#64748b', marginTop: 2 }}>{movementScore.toFixed(1)}</p>
+          </div>
+        )}
       </div>
     </Container>
   );

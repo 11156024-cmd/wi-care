@@ -284,8 +284,10 @@ export const fallDetectionApi = {
 export interface DashboardStats {
   totalElderly: number;
   onlineDevices: number;
+  totalDevices: number;
   todayEvents: number;
   todayFallAlerts: number;
+  unresolvedAlerts: number;
   systemUptime: string;
   lastUpdate: string;
 }
@@ -295,6 +297,60 @@ export const statsApi = {
   getDashboard: async (): Promise<DashboardStats> => {
     const response = await apiFetch('/stats/dashboard');
     return response.data;
+  },
+};
+
+// ========================================
+// 系統設定 API
+// ========================================
+
+export const settingsApi = {
+  // 取得所有設定
+  getAll: async (): Promise<Record<string, string>> => {
+    try {
+      const response = await apiFetch('/settings');
+      return response.data || {};
+    } catch {
+      return {};
+    }
+  },
+  // 更新設定
+  update: async (data: Record<string, string>): Promise<void> => {
+    await apiFetch('/settings', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+};
+
+// ========================================
+// 使用者 API
+// ========================================
+
+export const userApi = {
+  // 變更密碼
+  changePassword: async (currentPassword: string, newPassword: string): Promise<{ success: boolean; message: string }> => {
+    try {
+      const response = await apiFetch('/auth/change-password', {
+        method: 'POST',
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      return { success: true, message: response.message || '密碼已變更' };
+    } catch (err: any) {
+      return { success: false, message: err.message || '密碼變更失敗' };
+    }
+  },
+  // 更新個人資料
+  updateProfile: async (id: number, data: { name?: string; phone?: string; email?: string }): Promise<{ success: boolean; message: string }> => {
+    try {
+      await apiFetch(`/caregivers/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+      return { success: true, message: '資料已更新' };
+    } catch (err: any) {
+      return { success: false, message: err.message || '更新失敗' };
+    }
   },
 };
 
